@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <defaults public="false" />
+        <service id="swoole_server.command.swoole_start" class="App\Bundles\SwooleBundle\Command\SwooleStartCommand">
+            <argument>%kernel.container_class%</argument>
+        </service>
+
+        <service id="swoole_server.command.swoole_restart" class="App\Bundles\SwooleBundle\Command\SwooleRestartCommand">
+            <argument>%kernel.container_class%</argument>
+        </service>
+
+        <service id="swoole_server.command.swoole_reload" class="App\Bundles\SwooleBundle\Command\SwooleReloadCommand">
+            <argument>%kernel.container_class%</argument>
+        </service>
+
+        <service id="swoole_server.command.swoole_stop" class="App\Bundles\SwooleBundle\Command\SwooleStopCommand">
+            <argument>%kernel.container_class%</argument>
+        </service>
+
+        <service id="swoole_server.command.swoole_fixer" class="App\Bundles\SwooleBundle\Command\SwooleFixerCommand">
+        </service>
+
+        <service id="swoole_server.command.swoole_dev" class="App\Bundles\SwooleBundle\Command\SwooleDevCommand">
+        </service>
+    </services>
+</container>
