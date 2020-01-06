@@ -1,16 +1,13 @@
 {
     "name": "xiusin/swoole-bundle",
+    "description": "swoole symfony bundle",
+    "license": "MIT",
     "authors": [
         {
             "name": "xiusin",
             "email": "chenchengbin92@gmail.com"
         }
     ],
-    "require": {
-        "swoft/swoole-ide-helper": "*"
-    },
-    "autoload": {
-        "psr-4": { "Xiusin\\SwooleBundle\\": "" }
-    },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "require": {}
 }
