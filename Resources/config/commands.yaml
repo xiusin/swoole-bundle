@@ -1,0 +1,23 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    'xiusin\SwooleBundle\Command\SwooleDevCommand':
+        tags: [ { name: console.command, command: 'swoole:dev' } ]
+
+    'xiusin\SwooleBundle\Command\SwooleStartCommand':
+        tags: [ { name: console.command, command: 'swoole:start' } ]
+
+    'xiusin\SwooleBundle\Command\SwooleStopCommand':
+        tags: [ { name: console.command, command: 'swoole:stop' } ]
+
+    'xiusin\SwooleBundle\Command\SwooleReloadCommand':
+        tags: [ { name: console.command, command: 'swoole:reload' } ]
+
+    'xiusin\SwooleBundle\Command\SwooleRestartCommand':
+        tags: [ { name: console.command, command: 'swoole:restart' } ]
+
+    'xiusin\SwooleBundle\Command\SwooleFixerCommand':
+        tags: [ { name: console.command, command: 'swoole:fixer' } ]

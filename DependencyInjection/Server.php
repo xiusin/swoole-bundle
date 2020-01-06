@@ -295,7 +295,7 @@ class Server
     private function loadEnv()
     {
         if (!getenv('APP_ENV')) {
-            (new Dotenv())->load(__DIR__ . '/../.env');
+            (new Dotenv())->load($this->container->getParameter("kernel.project_dir") . '/.env');
         }
     }
 
