@@ -95,8 +95,8 @@ framework:
 
 
 
-# 其他内容 #
-怎么能让session在initBundles之间共享
+# TODO #
+ -[ ] 让session在initBundles之间共享
 
 
 

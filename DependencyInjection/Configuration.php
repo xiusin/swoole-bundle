@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\DependencyInjection;
+namespace xiusin\SwooleBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;

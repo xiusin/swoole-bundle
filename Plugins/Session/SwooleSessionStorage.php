@@ -5,7 +5,7 @@
  * Description: Please write description.
  */
 
-namespace App\Bundles\SwooleBundle\Plugins\Session;
+namespace xiusin\SwooleBundle\Plugins\Session;
 
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\StrictSessionHandler;

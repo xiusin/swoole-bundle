@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\Command;
+namespace xiusin\SwooleBundle\Command;
 
 use Swoole\Process;
 use Symfony\Component\Console\Command\Command;

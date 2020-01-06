@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\DependencyInjection;
+namespace xiusin\SwooleBundle\DependencyInjection;
 
+use Swoole\Process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -63,18 +64,17 @@ class WebServer
     public function stop(SymfonyStyle $io): bool
     {
         if (!file_exists($this->getPidFile())) {
-            $io->warning('没有swoole服务在运行');
+            $io->warning('no swoole service is running');
             return false;
         } else {
             $masterPid = intval(file_get_contents($this->getPidFile()));
-            //杀死进程
-            \swoole_process::kill($masterPid, 15);
+            Process::kill($masterPid, 15);
             usleep(1000);
             $timeout = 60;
             $startTime = time();
             while (true) {
-                if (\swoole_process::kill($masterPid, 0)) {
-                    // 判断是否超时
+                if (Process::kill($masterPid, 0)) {
+                    // ensure kill timeout
                     if (time() - $startTime >= $timeout) {
                         $io->error('error, stop the server is failed');
                         return false;
@@ -95,13 +95,13 @@ class WebServer
             $io->warning('no server is running');
         } else {
             $masterPid = intval(file_get_contents($this->getPidFile()));
-            // 确定进程是否存在
-            if (!\swoole_process::kill($masterPid, 0)) {
+            // check process exists
+            if (! Process::kill($masterPid, 0)) {
                 $io->error("PID[{$masterPid}] does not exist, or permission denied.");
             } else {
                 try {
-                    // 重启进程
-                    if ($res = \swoole_process::kill($masterPid, SIGUSR1)) {
+                    // restart process
+                    if ($res = Process::kill($masterPid, SIGUSR1)) {
                         $io->success(sprintf('Reload server successfully, PID[%d]. ', $masterPid));
                     } else {
                         $io->error(sprintf('Reload server failed,PID [%d]', $masterPid));

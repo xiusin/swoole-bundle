@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\Plugins;
+namespace xiusin\SwooleBundle\Plugins;
 
 abstract class ServerEventListener
 {

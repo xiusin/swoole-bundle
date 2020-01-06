@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\Command;
+namespace xiusin\SwooleBundle\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

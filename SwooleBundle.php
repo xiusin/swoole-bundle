@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Bundles\SwooleBundle;
+namespace xiusin\SwooleBundle;
 
-use App\Bundles\SwooleBundle\DependencyInjection\WebServer;
+use xiusin\SwooleBundle\DependencyInjection\WebServer;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SwooleBundle extends Bundle

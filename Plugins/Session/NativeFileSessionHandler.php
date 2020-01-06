@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\Plugins\Session;
+namespace xiusin\SwooleBundle\Plugins\Session;
 
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\AbstractSessionHandler;
 

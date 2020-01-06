@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Bundles\SwooleBundle\DependencyInjection;
+namespace xiusin\SwooleBundle\DependencyInjection;
 
-use App\Bundles\SwooleBundle\Plugins\ChanInterface;
-use App\Bundles\SwooleBundle\Plugins\ProcessInterface;
-use App\Bundles\SwooleBundle\Plugins\ServerEventListener;
-use App\Bundles\SwooleBundle\Plugins\TableInterface;
+use xiusin\SwooleBundle\Plugins\ChanInterface;
+use xiusin\SwooleBundle\Plugins\ProcessInterface;
+use xiusin\SwooleBundle\Plugins\ServerEventListener;
+use xiusin\SwooleBundle\Plugins\TableInterface;
 use App\Kernel;
 use RuntimeException;
 use Swoole\Http\Request;
@@ -87,9 +87,9 @@ class Server
     private $handler;
 
     /**
-     * @param ContainerInterface $container 容器
-     * @param SymfonyStyle $io 输入输出
-     * @param bool $daemonize 是否守护进程
+     * @param ContainerInterface $container
+     * @param SymfonyStyle $io
+     * @param bool $daemonize
      */
     public function __construct(ContainerInterface $container, SymfonyStyle $io, $daemonize = false)
     {
@@ -162,7 +162,7 @@ class Server
             if (in_array(ProcessInterface::class, class_implements($processName, true))) {
                 $this->handler->addProcess(new \swoole_process(function ($process) use (&$processName) {
                     /**
-                     * @var $processHandler ProcessInterface 实例化进程
+                     * @var $processHandler ProcessInterface
                      */
                     $processHandler = new $processName();
                     $processHandler->handle($process, $this->handler);
@@ -249,8 +249,6 @@ class Server
     }
 
     /**
-     * 结束响应.
-     *
      * @param Kernel $kernel
      * @param SymfonyRequest $symfonyRequest
      * @param Response $response
@@ -355,18 +353,18 @@ class Server
             $symfonyRequest = $this->warpToSymfonyRequest($request);
             $this->requestBindToKernel($symfonyRequest, $k);
             try {
-                // 结束响应
                 $this->finishResponse($k, $symfonyRequest, $response);
-            } catch (\Throwable $exception) {   //异常处理.
+            } catch (\Throwable $exception) {
                 /**
-                 * @var $twig Environment 解析twig服务
+                 * @var $twig Environment
                  */
                 $twig = $this->container->get('twig');
-                // 异常处理控制器
+                // convert to ExceptionController
                 $controller = new ExceptionController($twig, (bool) getenv('APP_DEBUG'));
-                // 转换异常类型
+                // convert to Exception
                 $exception = FlattenException::create($exception);
-                // 渲染异常信息
+
+                // render exception info
                 $response->end($controller->showAction($symfonyRequest, $exception)->getContent());
             }
         };
@@ -374,11 +372,10 @@ class Server
 
     public function run()
     {
-        // 初始化服务器组件
         $this->initComponent();
-        // 初始化服务事件监听
+
         $this->initEventListener();
-        // 启动server
+
         $this->handler->start();
     }
 
