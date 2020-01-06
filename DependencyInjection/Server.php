@@ -2,6 +2,8 @@
 
 namespace xiusin\SwooleBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
 use xiusin\SwooleBundle\Plugins\ServerEventListener;
@@ -10,7 +12,6 @@ use App\Kernel;
 use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Symfony\Bundle\TwigBundle\Controller\ExceptionController;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Debug\Debug;
 use Symfony\Component\Debug\Exception\FlattenException;
@@ -204,17 +205,19 @@ class Server
         $this->attachTables();
     }
 
+
     private function initEventListener()
     {
         $this->handler->on(self::REQUEST, self::onRequest());
         $this->handler->on(self::START, $this->onStart());
         $this->handler->on(self::WORKER_START, $this->onWorkStart());
 
+        // use event_listeners register ws hander
         $listeners = $this->config['event_listeners'];
         foreach ($listeners as $listenerName) {
             if (in_array(ServerEventListener::class, class_parents($listenerName, true))) {
                 /**
-                 * @var $listener ServerEventListener 服务事件监听对象
+                 * @var $listener ServerEventListener
                  */
                 $listener = new $listenerName();
                 $listener->setServer($this->handler);
@@ -273,7 +276,7 @@ class Server
         // 关闭请求与响应的生命周期
         $kernel->terminate($symfonyRequest, $symfonyResponse);
         // 将 session写到存储缓存内
-        $symfonyRequest->getSession()->save();
+//        $symfonyRequest->getSession()->save();
     }
 
     // 将request 附着到kernel上,在控制器内使用, 现在不知道怎么使用优雅的方式解决
@@ -295,7 +298,7 @@ class Server
     private function loadEnv()
     {
         if (!getenv('APP_ENV')) {
-            (new Dotenv())->load($this->container->getParameter("kernel.project_dir") . '/.env');
+            (new Dotenv())->load($this->container->getParameter("kernel.project_dir"). '/.env');
         }
     }
 
@@ -349,7 +352,7 @@ class Server
     {
         return function (Request $request, Response $response) {
             $k = clone $this->kernel;
-            $this->checkSessionExists($request, $response);
+            //            $this->checkSessionExists($request, $response);
             $symfonyRequest = $this->warpToSymfonyRequest($request);
             $this->requestBindToKernel($symfonyRequest, $k);
             try {
@@ -358,14 +361,17 @@ class Server
                 /**
                  * @var $twig Environment
                  */
-                $twig = $this->container->get('twig');
+//                $twig = $this->container->get('twig');
+
                 // convert to ExceptionController
-                $controller = new ExceptionController($twig, (bool) getenv('APP_DEBUG'));
-                // convert to Exception
-                $exception = FlattenException::create($exception);
+//                $controller = new ExceptionController($exception->getMessage(), (bool) getenv('APP_DEBUG'));
+//
+//                 convert to Exception
+//                $exception = FlattenException::create($exception);
 
                 // render exception info
-                $response->end($controller->showAction($symfonyRequest, $exception)->getContent());
+//                $controller->showAction($symfonyRequest, $exception)->getContent() . "测"
+                $response->end($exception->getFile().":".$exception->getLine().":".$exception->getTraceAsString());
             }
         };
     }

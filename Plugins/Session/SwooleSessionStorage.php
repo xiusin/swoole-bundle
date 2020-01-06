@@ -97,10 +97,10 @@ class SwooleSessionStorage implements SessionStorageInterface
         $this->sessionName = $name;
     }
 
-    public function regenerate($destroy = false, $lifetime = null)
-    {
-        return false;
-    }
+   public function regenerate(bool $destroy = false, int $lifetime = null)
+   {
+       // TODO: Implement regenerate() method.
+   }
 
     public function save()
     {
