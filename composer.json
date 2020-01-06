@@ -8,6 +8,11 @@
             "email": "chenchengbin92@gmail.com"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "xiusin\\SwooleBundle\\": "./"
+        }
+    },
     "minimum-stability": "dev",
     "require": {}
 }
