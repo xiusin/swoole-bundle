@@ -6,26 +6,26 @@
 
     <services>
         <defaults public="false" />
-        <service id="swoole_server.command.swoole_start" class="App\Bundles\SwooleBundle\Command\SwooleStartCommand">
+        <service id="swoole_server.command.swoole_start" class="xiusin\SwooleBundle\Command\SwooleStartCommand">
             <argument>%kernel.container_class%</argument>
         </service>
 
-        <service id="swoole_server.command.swoole_restart" class="App\Bundles\SwooleBundle\Command\SwooleRestartCommand">
+        <service id="swoole_server.command.swoole_restart" class="xiusin\SwooleBundle\Command\SwooleRestartCommand">
             <argument>%kernel.container_class%</argument>
         </service>
 
-        <service id="swoole_server.command.swoole_reload" class="App\Bundles\SwooleBundle\Command\SwooleReloadCommand">
+        <service id="swoole_server.command.swoole_reload" class="xiusin\SwooleBundle\Command\SwooleReloadCommand">
             <argument>%kernel.container_class%</argument>
         </service>
 
-        <service id="swoole_server.command.swoole_stop" class="App\Bundles\SwooleBundle\Command\SwooleStopCommand">
+        <service id="swoole_server.command.swoole_stop" class="xiusin\SwooleBundle\Command\SwooleStopCommand">
             <argument>%kernel.container_class%</argument>
         </service>
 
-        <service id="swoole_server.command.swoole_fixer" class="App\Bundles\SwooleBundle\Command\SwooleFixerCommand">
+        <service id="swoole_server.command.swoole_fixer" class="xiusin\SwooleBundle\Command\SwooleFixerCommand">
         </service>
 
-        <service id="swoole_server.command.swoole_dev" class="App\Bundles\SwooleBundle\Command\SwooleDevCommand">
+        <service id="swoole_server.command.swoole_dev" class="xiusin\SwooleBundle\Command\SwooleDevCommand">
         </service>
     </services>
 </container>
