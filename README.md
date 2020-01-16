@@ -95,9 +95,9 @@ framework:
 
 
 # TODO #
- -[ ] 开发session组件适配组件
- -[ ] cookie session开启依赖配置项
- -[ ] 大批量测试数据污染 
+ - [ ] 开发session组件适配组件
+ - [ ] cookie session开启依赖配置项
+ - [ ] 大批量测试数据污染 
  
 # 压测数据 #
 ```bash
@@ -114,7 +114,7 @@ Transfer/sec:      3.88MB
 
 
 
-# 直接newKernel 压测
+# 直接创建Kernel实例压测
 $ wrk -t12 -c100 -d10s http://localhost:9501/index
 Running 10s test @ http://localhost:9501/index
   12 threads and 100 connections
