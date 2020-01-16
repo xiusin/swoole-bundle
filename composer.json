@@ -14,5 +14,12 @@
         }
     },
     "minimum-stability": "dev",
-    "require": {}
+    "require": {
+        "swoft/swoole-ide-helper": "*",
+        "sensio/framework-extra-bundle": "*",
+        "symfony/console": "*",
+        "symfony/dotenv": "*",
+        "symfony/framework-bundle": "*",
+        "symfony/yaml": "*"
+    }
 }

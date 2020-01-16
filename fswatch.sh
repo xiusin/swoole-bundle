@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-WORK_DIR="src/"
+WORK_DIR="./"
 php bin/console swoole:start -v -d
 LOCKING=0
 fswatch -e ".*" -i "\.php$" ${WORK_DIR} | while read file

@@ -47,7 +47,7 @@ services:
 ```yaml
 swoole:
   # 配置服务类型
-  server: Swoole\Http\Server # Swoole\WebSocket\Server 需要在  event_listeners 配置注册 ServerOnManagerEventListener对象.
+  server: Swoole\WebSocket\Server
 
   # 服务的配置
   config:

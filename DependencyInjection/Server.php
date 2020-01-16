@@ -3,6 +3,7 @@
 namespace xiusin\SwooleBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
@@ -13,7 +14,6 @@ use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Debug\Debug;
 use Symfony\Component\Debug\Exception\FlattenException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -26,6 +26,8 @@ use Twig\Environment;
  */
 class Server
 {
+    public $debug = false;
+
     const WORKER_START = 'WorkerStart';
 
     const START = 'Start';
@@ -208,10 +210,9 @@ class Server
 
     private function initEventListener()
     {
-        $this->handler->on(self::REQUEST, self::onRequest());
         $this->handler->on(self::START, $this->onStart());
+        $this->handler->on(self::REQUEST, self::onRequest());
         $this->handler->on(self::WORKER_START, $this->onWorkStart());
-
         // use event_listeners register ws hander
         $listeners = $this->config['event_listeners'];
         foreach ($listeners as $listenerName) {
@@ -275,8 +276,6 @@ class Server
         $response->end($symfonyResponse->getContent());
         // 关闭请求与响应的生命周期
         $kernel->terminate($symfonyRequest, $symfonyResponse);
-        // 将 session写到存储缓存内
-//        $symfonyRequest->getSession()->save();
     }
 
     // 将request 附着到kernel上,在控制器内使用, 现在不知道怎么使用优雅的方式解决
@@ -295,16 +294,9 @@ class Server
         }
     }
 
-    private function loadEnv()
-    {
-        if (!getenv('APP_ENV')) {
-            (new Dotenv())->load($this->container->getParameter("kernel.project_dir"). '/.env');
-        }
-    }
-
     private function ensureDebug()
     {
-        if ((bool) getenv('APP_DEBUG')) {
+        if ($this->debug) {
             umask(0000);
             Debug::enable();
         }
@@ -317,16 +309,14 @@ class Server
 
     private function initKernel($env, $debug)
     {
-        $this->kernel = new Kernel($env, (bool)$debug);
+        $this->kernel = new Kernel($_SERVER['APP_ENV'], $this->debug);
     }
 
 
     public function onStart()
     {
         return function () {
-            $host = $this->config['http_host'];
-            $port = $this->config['http_port'];
-            $host = 'http://' . $host . ((80 !== $port) ? ':' . $port : '');
+            $host = 'http://' . $this->getHttpHost();
             $this->io->writeln('<info>[OK]</info> Swoole-' . SWOOLE_VERSION . ' started, listening on <info>' . $host . '/</info>');
         };
     }
@@ -336,10 +326,9 @@ class Server
         return function ($serv, $worker_id) {
             if ($worker_id === 0) {
                 require dirname(__DIR__) . '/../../../config/bootstrap.php';
-                $this->loadEnv();
+                $this->debug = (bool)$_SERVER['APP_DEBUG'];
                 $this->ensureDebug();
                 $this->setTrustedProxiesAndHosts();
-                $this->initKernel(getenv('APP_ENV') ?: 'dev', (bool)getenv('APP_DEBUG'));
             }
             if ($this->isLinux()) {
                 $processFlags = $worker_id >= $serv->setting['worker_num'] ? 'task' : 'event';
@@ -350,38 +339,50 @@ class Server
 
     public function onRequest()
     {
+        $this->initKernel($_SERVER['APP_ENV'], $this->debug);
         return function (Request $request, Response $response) {
-            $k = clone $this->kernel;
-            //            $this->checkSessionExists($request, $response);
-            $symfonyRequest = $this->warpToSymfonyRequest($request);
-            $this->requestBindToKernel($symfonyRequest, $k);
             try {
+                if ($this->debug) {
+                    $request->server['http_host'] = $this->getHttpHost();
+                }
+                $k = clone $this->kernel;
+                $this->checkSessionExists($request, $response);
+                $symfonyRequest = $this->warpToSymfonyRequest($request);
+                $this->requestBindToKernel($symfonyRequest, $k);
                 $this->finishResponse($k, $symfonyRequest, $response);
             } catch (\Throwable $exception) {
+
                 /**
                  * @var $twig Environment
                  */
-//                $twig = $this->container->get('twig');
-
-                // convert to ExceptionController
-//                $controller = new ExceptionController($exception->getMessage(), (bool) getenv('APP_DEBUG'));
+                if ($this->container->has('twig')) {
+                    // convert to ExceptionController
+//                $controller = new Exeption($exception->getMessage(), $this->debug);
 //
 //                 convert to Exception
 //                $exception = FlattenException::create($exception);
 
-                // render exception info
-//                $controller->showAction($symfonyRequest, $exception)->getContent() . "测"
-                $response->end($exception->getFile().":".$exception->getLine().":".$exception->getTraceAsString());
+                    // render exception info
+//                $controller->showAction($symfonyRequest, $exception)->getContent()
+                }
+
+
+                $response->end($exception->getMessage() . ':' . $exception->getFile() . ":" . $exception->getLine() . ":" . $exception->getTraceAsString());
             }
         };
+    }
+
+    private function getHttpHost()
+    {
+        $host = $this->config['http_host'];
+        $port = $this->config['http_port'];
+        return $host . ((80 !== $port) ? ':' . $port : '');
     }
 
     public function run()
     {
         $this->initComponent();
-
         $this->initEventListener();
-
         $this->handler->start();
     }
 

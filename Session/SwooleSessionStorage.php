@@ -5,7 +5,7 @@
  * Description: Please write description.
  */
 
-namespace xiusin\SwooleBundle\Plugins\Session;
+namespace xiusin\SwooleBundle\Session;
 
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\StrictSessionHandler;
@@ -30,11 +30,10 @@ class SwooleSessionStorage implements SessionStorageInterface
     protected $metadataBag;
     private $emulateSameSite;
 
-    public function __construct($handler = null, MetadataBag $metaBag = null)
+    public function __construct($handler, MetadataBag $metaBag = null)
     {
         $this->sessionName = session_name();
         $this->setMetadataBag($metaBag);
-        $this->setOptions([]);
         $this->setSaveHandler($handler);
     }
 
@@ -97,10 +96,10 @@ class SwooleSessionStorage implements SessionStorageInterface
         $this->sessionName = $name;
     }
 
-   public function regenerate(bool $destroy = false, int $lifetime = null)
-   {
-       // TODO: Implement regenerate() method.
-   }
+    public function regenerate($destroy = false, $lifetime = null)
+    {
+        return false;
+    }
 
     public function save()
     {
@@ -205,30 +204,5 @@ class SwooleSessionStorage implements SessionStorageInterface
         }
         $this->started = true;
         $this->closed = false;
-    }
-
-    public function setOptions(array $options)
-    {
-        $validOptions = array_flip([
-            'cache_expire', 'cache_limiter', 'cookie_domain', 'cookie_httponly',
-            'cookie_lifetime', 'cookie_path', 'cookie_secure', 'cookie_samesite',
-            'gc_divisor', 'gc_maxlifetime', 'gc_probability',
-            'lazy_write', 'name', 'referer_check',
-            'serialize_handler', 'use_strict_mode', 'use_cookies',
-            'use_only_cookies', 'use_trans_sid', 'upload_progress.enabled',
-            'upload_progress.cleanup', 'upload_progress.prefix', 'upload_progress.name',
-            'upload_progress.freq', 'upload_progress.min_freq', 'url_rewriter.tags',
-            'sid_length', 'sid_bits_per_character', 'trans_sid_hosts', 'trans_sid_tags',
-        ]);
-
-        foreach ($options as $key => $value) {
-            if (isset($validOptions[$key])) {
-                if ('cookie_samesite' === $key && \PHP_VERSION_ID < 70300) {
-                    $this->emulateSameSite = $value;
-                    continue;
-                }
-                ini_set('url_rewriter.tags' !== $key ? 'session.'.$key : $key, $value);
-            }
-        }
     }
 }

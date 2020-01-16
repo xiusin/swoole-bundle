@@ -1,6 +1,6 @@
 <?php
 
-namespace xiusin\SwooleBundle\Plugins\Session;
+namespace xiusin\SwooleBundle\Session;
 
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\AbstractSessionHandler;
 
@@ -18,7 +18,7 @@ class NativeFileSessionHandler extends AbstractSessionHandler
             $this->sessSavePath = rtrim($savePath, DIRECTORY_SEPARATOR);
         }
         $this->maxlifetime = ini_get('session.gc_maxlifetime');
-        $this->prefix = $prefix ?: 'sf_s';
+        $this->prefix = $prefix;
         $baseDir = $savePath;
         if ($count = substr_count($savePath, ';')) {
             if ($count > 2) {
@@ -34,7 +34,7 @@ class NativeFileSessionHandler extends AbstractSessionHandler
 
     protected function doRead($sessionId)
     {
-        $path = $this->sessSavePath.'/'.$sessionId;
+        $path = $this->sessSavePath . '/' . $sessionId;
         if (file_exists($path)) {
             if (filemtime($path) >= time() - $this->maxlifetime) {
                 return file_get_contents($path);
@@ -48,16 +48,16 @@ class NativeFileSessionHandler extends AbstractSessionHandler
         if (!is_dir($this->sessSavePath) && !mkdir($this->sessSavePath, 0755) && !is_dir($this->sessSavePath)) {
             return false;
         }
-        $path = $this->sessSavePath.'/'.$sessionId;
+        $path = $this->sessSavePath . '/' . $sessionId;
         return file_put_contents($path, $data);
     }
 
     protected function doDestroy($sessionId)
     {
-        if (!is_dir($this->sessSavePath) || !file_exists($this->sessSavePath.'/'.$sessionId)) {
+        if (!is_dir($this->sessSavePath) || !file_exists($this->sessSavePath . '/' . $sessionId)) {
             return true;
         }
-        $path = $this->sessSavePath.'/'.$sessionId;
+        $path = $this->sessSavePath . '/' . $sessionId;
         try {
             return unlink($path);
         } catch (\Exception $exception) {
@@ -77,6 +77,6 @@ class NativeFileSessionHandler extends AbstractSessionHandler
 
     public function updateTimestamp($session_id, $session_data)
     {
-        return $this->doWrite($this->prefix.$session_id, $session_data);
+        return $this->doWrite($this->prefix . $session_id, $session_data);
     }
 }

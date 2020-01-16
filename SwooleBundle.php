@@ -7,6 +7,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SwooleBundle extends Bundle
 {
+
     private $swooleName = 'app.swoole';
     public function boot()
     {
@@ -28,7 +29,8 @@ class SwooleBundle extends Bundle
     private function registerServices()
     {
         $this->container->set($this->swooleName, WebServer::getInstance()->httpServer());
-        $req = $this->container->get('kernel')->request;
-        $this->container->get('session')->setId($req->cookies->get(session_name()));
+        // todo 这里不要强依赖session
+        //        $req = $this->container->get('kernel')->request;
+//        $this->container->get('session')->setId($req->cookies->get(session_name()));
     }
 }
