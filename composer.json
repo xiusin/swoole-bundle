@@ -15,7 +15,6 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "swoft/swoole-ide-helper": "*",
         "sensio/framework-extra-bundle": "*",
         "symfony/console": "*",
         "symfony/dotenv": "*",

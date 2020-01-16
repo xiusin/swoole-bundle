@@ -94,9 +94,41 @@ framework:
 
 
 
-
 # TODO #
- -[ ] 让session在initBundles之间共享
+ -[ ] 开发session组件适配组件
+ -[ ] cookie session开启依赖配置项
+ -[ ] 大批量测试数据污染 
+ 
+# 压测数据 #
+```bash
+# 使用Kernel对象池压测
+$ wrk -t12 -c100 -d10s http://localhost:9501/index
+Running 10s test @ http://localhost:9501/index
+  12 threads and 100 connections
+\  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     5.08ms    1.70ms  44.74ms   91.53%
+    Req/Sec     1.60k   136.54     1.84k    61.75%
+  191082 requests in 10.02s, 38.81MB read
+Requests/sec:  19079.03
+Transfer/sec:      3.88MB
+
+
+
+# 直接newKernel 压测
+$ wrk -t12 -c100 -d10s http://localhost:9501/index
+Running 10s test @ http://localhost:9501/index
+  12 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    18.59ms    4.04ms  48.44ms   73.99%
+    Req/Sec   431.70     37.94   525.00     57.25%
+  51656 requests in 10.03s, 10.49MB read
+Requests/sec:   5152.41
+Transfer/sec:      1.05MB
+
+```
+
+
+
 
 
 

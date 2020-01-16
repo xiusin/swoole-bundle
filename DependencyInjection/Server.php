@@ -5,6 +5,7 @@ namespace xiusin\SwooleBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use xiusin\SwooleBundle\KernelPool;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
 use xiusin\SwooleBundle\Plugins\ServerEventListener;
@@ -80,13 +81,12 @@ class Server
 
     private $container;
 
-    private $kernel;
+    /*** @var KernelPool */
+    private $kernelPool = null;
 
     protected $locker;
 
-    /**
-     * @var \swoole_http_server | \swoole_websocket_server
-     */
+    /*** @var \swoole_http_server | \swoole_websocket_server */
     private $handler;
 
     /**
@@ -105,7 +105,6 @@ class Server
         $this->handler = new $handlerClass($this->config['http_host'], $this->config['http_port'], SWOOLE_PROCESS);
         $this->serverConfig = $this->config['config'];    //覆盖config内容
         $this->handler->set($this->getSetting());
-
     }
 
     public function getHandler()
@@ -285,11 +284,12 @@ class Server
     }
 
     // 检查session
+    // todo 依赖session功能开启
     // 如果不存在session_name的 cookie 则设置
     private function checkSessionExists(Request $request, Response $response)
     {
         if (!($request->cookie[session_name()] ?? '')) {
-            $request->cookie[session_name()] = session_create_id('sess-');
+            $request->cookie[session_name()] = strtoupper(session_create_id('sess-'));
             $response->cookie(session_name(), $request->cookie[session_name()]);
         }
     }
@@ -306,12 +306,6 @@ class Server
     {
         return PHP_OS == "Linux";
     }
-
-    private function initKernel($env, $debug)
-    {
-        $this->kernel = new Kernel($_SERVER['APP_ENV'], $this->debug);
-    }
-
 
     public function onStart()
     {
@@ -339,14 +333,11 @@ class Server
 
     public function onRequest()
     {
-        $this->initKernel($_SERVER['APP_ENV'], $this->debug);
+        $this->kernelPool = new KernelPool($_SERVER['APP_ENV'], $this->debug, 1000, true);
         return function (Request $request, Response $response) {
             try {
-                if ($this->debug) {
-                    $request->server['http_host'] = $this->getHttpHost();
-                }
-                $k = clone $this->kernel;
-                $this->checkSessionExists($request, $response);
+                $request->server['http_host'] = $this->getHttpHost();
+                $k = $this->kernelPool->get();
                 $symfonyRequest = $this->warpToSymfonyRequest($request);
                 $this->requestBindToKernel($symfonyRequest, $k);
                 $this->finishResponse($k, $symfonyRequest, $response);
@@ -365,9 +356,9 @@ class Server
                     // render exception info
 //                $controller->showAction($symfonyRequest, $exception)->getContent()
                 }
-
-
                 $response->end($exception->getMessage() . ':' . $exception->getFile() . ":" . $exception->getLine() . ":" . $exception->getTraceAsString());
+            } finally {
+                if (isset($k) && $k) $this->kernelPool->put($k);
             }
         };
     }
