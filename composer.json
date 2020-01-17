@@ -19,6 +19,7 @@
         "symfony/console": "*",
         "symfony/dotenv": "*",
         "symfony/framework-bundle": "*",
-        "symfony/yaml": "*"
+        "symfony/yaml": "*",
+        "swoft/swoole-ide-helper": "*"
     }
 }

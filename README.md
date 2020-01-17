@@ -16,6 +16,49 @@ return [
 ];
 ```
 
+执行命令添加`packages/swoole.yaml`: 
+```bash
+php bin/console swoole:publish
+```
+
+```yaml
+// 完整的配置文件大概是这样的
+swoole:
+  # 配置服务类型
+  server: Swoole\WebSocket\Server
+
+  # 服务的配置
+  config:
+      worker_num: 1
+      http_compression: true
+      max_request: 0
+      pid_file: '%kernel.logs_dir%/swoole.server.pid'
+      log_file: '%kernel.logs_dir%/swoole_%kernel.environment%.log'
+      document_root: '%kernel.project_dir%/public/'
+      enable_static_handler: true
+
+  # 附加进程列表
+  processes:
+    - App\Process\TestProcess
+
+  # 附加channel列表
+  chans:
+    - {class: App\Chan\DemoChan, size: 1500}
+
+  # 附加表列表
+  tables:
+    - App\Table\DemoTable
+
+  # 事件监听列表
+  event_listeners:
+    - App\ServerEventListener\ServerOnOpenEventListener
+    - App\ServerEventListener\ServerOnManagerEventListener
+    - App\ServerEventListener\ServerOnCloseEventListener
+```
+
+
+
+
 配置bundle:
 ```yaml
 // config/services.yaml
@@ -43,40 +86,6 @@ services:
 
 ```
 
-配置bundle文件 (添加到`packages/swoole.yaml`): 
-```yaml
-swoole:
-  # 配置服务类型
-  server: Swoole\WebSocket\Server
-
-  # 服务的配置
-  config:
-      worker_num: 1
-      http_compression: true
-      max_request: 0
-      log_file: '%kernel.logs_dir%/swoole_%kernel.environment%.log'
-      document_root: '%kernel.project_dir%/public/'
-      enable_static_handler: true
-
-  # 附加进程列表
-  processes:
-    - App\Process\TestProcess
-
-  # 附加channel列表
-#  chans:
-#    - {class: App\Chan\DemoChan, size: 1500}
-
-  # 附加表列表
-  tables:
-    - App\Table\DemoTable
-
-  # 事件监听列表
-  event_listeners:
-    - App\ServerEventListener\ServerOnOpenEventListener
-    - App\ServerEventListener\ServerOnManagerEventListener
-    - App\ServerEventListener\ServerOnCloseEventListener
-```
-
 
 修改框架配置文件: 
 
@@ -93,7 +102,6 @@ framework:
 
 
 
-
 # TODO #
  -[ ] 开发session组件适配组件
  -[ ] cookie session开启依赖配置项
@@ -101,7 +109,7 @@ framework:
  
 # 压测数据 #
 ```bash
-# 使用Kernel对象池压测
+# 优化压测
 $ wrk -t12 -c100 -d10s http://localhost:9501/index
 Running 10s test @ http://localhost:9501/index
   12 threads and 100 connections
@@ -114,7 +122,7 @@ Transfer/sec:      3.88MB
 
 
 
-# 直接newKernel 压测
+# 默认压测
 $ wrk -t12 -c100 -d10s http://localhost:9501/index
 Running 10s test @ http://localhost:9501/index
   12 threads and 100 connections
@@ -125,11 +133,19 @@ Running 10s test @ http://localhost:9501/index
 Requests/sec:   5152.41
 Transfer/sec:      1.05MB
 
+
+
+# nginx服务器压测 #
+# 开通多核,其他优化项不知如何处理
+$ wrk -t12 -c100 -d10s http://sf.com/index        
+Running 10s test @ http://sf.com/index
+  12 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   101.58ms   84.46ms 661.39ms   95.55%
+    Req/Sec    94.57     32.41   161.00     72.00%
+  10738 requests in 10.10s, 2.56MB read
+Requests/sec:   1062.77
+Transfer/sec:    259.42KB
+
 ```
-
-
-
-
-
-
 

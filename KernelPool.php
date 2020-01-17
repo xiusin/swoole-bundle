@@ -40,7 +40,6 @@ class KernelPool
     public function get(): Kernel
     {
         $kernel = null;
-        return new Kernel($this->env, $this->debug);
         try {
             $this->locker->lock();
             if (count($this->pools)) {

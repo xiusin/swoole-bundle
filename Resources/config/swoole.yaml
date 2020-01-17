@@ -1,0 +1,14 @@
+swoole:
+  # 配置服务类型
+  server: Swoole\Http\Server
+
+  # 服务的配置
+  config:
+    worker_num: 16
+    reactor_num: 8
+    http_compression: true
+    max_request: 0
+    log_file: '%kernel.logs_dir%/swoole_%kernel.environment%.log'
+    pid_file: '%kernel.logs_dir%/swoole.server.pid'
+    document_root: '%kernel.project_dir%/public/'
+    enable_static_handler: true

@@ -8,15 +8,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class WebServer
 {
+    /* @var Server */
     protected $server;
 
     private static $instance;
 
     private $started;
 
+    /* @var ContainerInterface */
     protected $container;
-
-    private $pidFile = 'swoole.server.pid';
 
     private function __construct()
     {
@@ -51,13 +51,15 @@ class WebServer
 
     public function getPidFile()
     {
-        return getcwd() . '/' . $this->pidFile;
+        $config = $this->container->getParameter('swoole.config');
+        return $config['config']['pid_file'];
     }
 
-    public function start(SymfonyStyle $io, $daemonize = false)
+    public function start(SymfonyStyle $io, \Closure $callback, $daemonize = false)
     {
         $this->server = new Server($this->container, $io, $daemonize);
         $this->started = true;
+        $callback();
         $this->server->run();
     }
 
@@ -74,7 +76,6 @@ class WebServer
             $startTime = time();
             while (true) {
                 if (Process::kill($masterPid, 0)) {
-                    // ensure kill timeout
                     if (time() - $startTime >= $timeout) {
                         $io->error('error, stop the server is failed');
                         return false;
@@ -95,16 +96,14 @@ class WebServer
             $io->warning('no server is running');
         } else {
             $masterPid = intval(file_get_contents($this->getPidFile()));
-            // check process exists
-            if (! Process::kill($masterPid, 0)) {
+            if (!Process::kill($masterPid, 0)) {
                 $io->error("PID[{$masterPid}] does not exist, or permission denied.");
             } else {
                 try {
-                    // restart process
                     if ($res = Process::kill($masterPid, SIGUSR1)) {
-                        $io->success(sprintf('Reload server successfully, PID[%d]. ', $masterPid));
+                        $io->writeln(sprintf('<info>[SUSS]</info> reload server successfully, PID[%d]. ', $masterPid));
                     } else {
-                        $io->error(sprintf('Reload server failed,PID [%d]', $masterPid));
+                        $io->writeln(sprintf('<info>[ERRO]</info> reload server failed,PID [%d]', $masterPid));
                     }
                 } catch (\Exception $exception) {
                     $io->error($exception->getMessage());

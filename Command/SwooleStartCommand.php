@@ -17,7 +17,8 @@ class SwooleStartCommand extends Command
 
     protected $container;
 
-    protected $config;
+    /* @var WebServer */
+    private $server = null;
 
     public function __construct(ContainerInterface $container)
     {
@@ -27,14 +28,14 @@ class SwooleStartCommand extends Command
 
     protected function configure()
     {
-        $this->setDescription('start a swoole server.');
+        $this->setDescription('start a swoole http server.');
         $this->setDefinition([
             new InputOption('daemonize', 'd', InputOption::VALUE_OPTIONAL, 'daemonize the server', 0),
         ]);
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      *
      * @return int|void|null
@@ -44,23 +45,42 @@ class SwooleStartCommand extends Command
         $daemonize = $input->getOption('daemonize');
         $daemonize = !is_int($daemonize) || intval($daemonize) ? true : false;
         $server = WebServer::getInstance();
+        $this->server = $server;
         $server->setContainer($this->container);
         $io = new SymfonyStyle($input, $output);
-        $this->info($io, $output);
-        $server->start($io, $daemonize);
+        $server->start($io, function () use ($io, $output) {
+            $this->info($io, $output);
+        }, $daemonize);
     }
 
     // 打印组件信息
     protected function info(SymfonyStyle $io, OutputInterface $output)
     {
-        $io->writeln('');
+        $config = $this->container->getParameter("swoole.config");
         $io->writeln('');
         $table = new Table($output);
-        $table->setHeaders(['组件', '版本'])->setHeaderTitle('use swoole http server speed your symfony project')->setRows([
-            ['组件' => 'PHP', '版本' => phpversion()],
-            ['组件' => 'Swoole', '版本' => \swoole_version()],
-            ['组件' => $this->getApplication()->getName(), '版本' => $this->getApplication()->getVersion()],
-        ])->setColumnWidth(0, 20)->setColumnWidth(1, 50)->render();
+        $table->setHeaders(['Configuration', 'Values'])
+            ->setHeaderTitle('SPEED YOUR SYMFONY PROJECT')
+            ->setRows([
+                ['Configuration' => 'PHP', 'Values' => phpversion()],
+                ['Configuration' => 'Swoole', 'Values' => \swoole_version()],
+                ['Configuration' => $this->getApplication()->getName(), 'Values' => $this->getApplication()->getVersion()],
+                ['Configuration' => 'Env', 'Values' => $_SERVER['APP_ENV']],
+                ['Configuration' => 'Debug', 'Values' => $_SERVER['APP_DEBUG'] ? 'true' : 'false'],
+                ['Configuration' => str_repeat('-', 15), 'Values' => str_repeat('-', 40)],
+                ['Configuration' => 'Server', 'Values' => $config['server']],
+                ['Configuration' => 'running_mode', 'Values' => 'Process'],
+                ['Configuration' => 'worker_num', 'Values' => $config['config']['worker_num']],
+                ['Configuration' => 'reactor_num', 'Values' => $config['config']['reactor_num']],
+                ['Configuration' => 'memory_limit', 'Values' => ini_get('memory_limit')],
+                ['Configuration' => 'document_root', 'Values' => $config['config']['document_root']],
+//                ['Configuration' => 'master_pid', 'Values' => $this->server->httpServer()->getHandler()->master_pid],
+//                ['Configuration' => 'manager_pid', 'Values' => $this->server->httpServer()->getHandler()->manager_pid],
+//                ['Configuration' => 'worker_pid', 'Values' => $this->server->httpServer()->getHandler()->worker_pid],
+            ])
+            ->setColumnWidth(0, 20)
+            ->setColumnWidth(1, 40)
+            ->render();
         $io->writeln('');
     }
 }

@@ -81,14 +81,13 @@ class Server
 
     private $container;
 
-    /*** @var KernelPool */
+    /* @var KernelPool */
     private $kernelPool = null;
 
-    protected $locker;
-
-    /*** @var \swoole_http_server | \swoole_websocket_server */
+    /* @var \swoole_http_server | \swoole_websocket_server */
     private $handler;
 
+    public $pidFile = '';
     /**
      * @param ContainerInterface $container
      * @param SymfonyStyle $io
@@ -100,10 +99,11 @@ class Server
         $this->io = $io;
         $this->config = $container->getParameter('swoole.config');
         $this->config['config']['daemonize'] = $daemonize;
-        $this->locker = new \swoole_lock(SWOOLE_RWLOCK);
         $handlerClass = $this->config['server'];
         $this->handler = new $handlerClass($this->config['http_host'], $this->config['http_port'], SWOOLE_PROCESS);
-        $this->serverConfig = $this->config['config'];    //覆盖config内容
+
+        $this->serverConfig = $this->config['config'];
+        $this->pidFile = $this->serverConfig['pid_file'];
         $this->handler->set($this->getSetting());
     }
 
@@ -116,6 +116,7 @@ class Server
     {
         return [
             'worker_num' => $this->serverConfig['worker_num'],
+            'reactor_num' => $this->serverConfig['reactor_num'],
             'upload_tmp_dir' => sys_get_temp_dir(),
             'enable_static_handler' => $this->serverConfig['enable_static_handler'],
             'document_root' => $this->serverConfig['document_root'],
@@ -123,38 +124,28 @@ class Server
             'log_level' => $this->serverConfig['log_level'],
             'log_file' => $this->serverConfig['log_file'],
             'daemonize' => $this->serverConfig['daemonize'] ? 1 : 0,
-            'pid_file' => WebServer::getInstance()->getPidFile(),
+            'pid_file' => $this->pidFile,
         ];
     }
 
     public function addChan(string $name, ChanInterface $chan)
     {
-        $this->locker->lock();
         $this->chans[$name] = $chan;
-        $this->locker->unlock();
     }
 
     public function getChan($name)
     {
-        $this->locker->lock();
-        $chan = $this->chans[$name];
-        $this->locker->unlock();
-        return $chan;
+        return $this->chans[$name];
     }
 
     public function addTable(string $name, TableInterface $table)
     {
-        $this->locker->lock();
         $this->tables[$name] = $table;
-        $this->locker->unlock();
     }
 
     public function getTable($name)
     {
-        $this->locker->lock();
-        $table = $this->tables[$name];
-        $this->locker->unlock();
-        return $table;
+        return $this->tables[$name];
     }
 
     private function attachProcess()
@@ -163,9 +154,8 @@ class Server
         foreach ($processes as $processName) {
             if (in_array(ProcessInterface::class, class_implements($processName, true))) {
                 $this->handler->addProcess(new \swoole_process(function ($process) use (&$processName) {
-                    /**
-                     * @var $processHandler ProcessInterface
-                     */
+
+                    /* @var $processHandler ProcessInterface */
                     $processHandler = new $processName();
                     $processHandler->handle($process, $this->handler);
                 }));
@@ -311,7 +301,7 @@ class Server
     {
         return function () {
             $host = 'http://' . $this->getHttpHost();
-            $this->io->writeln('<info>[OK]</info> Swoole-' . SWOOLE_VERSION . ' started, listening on <info>' . $host . '/</info>');
+            $this->io->success('Swoole-' . SWOOLE_VERSION . ' started, listening on ' . $host . '/');
         };
     }
 

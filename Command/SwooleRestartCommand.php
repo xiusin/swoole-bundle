@@ -41,7 +41,7 @@ class SwooleRestartCommand extends Command
         $server = WebServer::getInstance();
         $server->setContainer($this->container);
         if ($server->stop($io)) {
-            $server->start($io, true);
+            $server->start($io,null, true);
         }
     }
 }

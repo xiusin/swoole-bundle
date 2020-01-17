@@ -18,9 +18,7 @@ class SwooleDevCommand extends Command
     protected $sh = <<<SH
 #!/usr/bin/env bash
 WORK_DIR="src/"
-echo "start swoole server..."
 php bin/console swoole:start -d -v
-echo "Starting fswatch..."
 LOCKING=0
 fswatch -e ".*" -i "\\.php$" \${WORK_DIR} | while read file
 do
