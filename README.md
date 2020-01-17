@@ -1,6 +1,7 @@
 
 1. 安装 
-```shell
+
+```bash
 composer require xiusin/swoole-bundle
 ```
 
@@ -17,6 +18,7 @@ return [
 ```
 
 执行命令添加`packages/swoole.yaml`: 
+
 ```bash
 php bin/console swoole:publish
 ```
@@ -60,6 +62,7 @@ swoole:
 
 
 配置bundle:
+
 ```yaml
 // config/services.yaml
 
@@ -103,9 +106,9 @@ framework:
 
 
 # TODO #
- -[ ] 开发session组件适配组件
- -[ ] cookie session开启依赖配置项
- -[ ] 大批量测试数据污染 
+ - [ ] 开发session组件适配组件
+ - [ ] cookie session开启依赖配置项
+ - [ ] 大批量测试数据污染 
  
 # 压测数据 #
 ```bash
