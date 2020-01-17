@@ -12,7 +12,7 @@ composer require xiusin/swoole-bundle
 
 return [
  // ...
- App\Bundles\SwooleBundle\SwooleBundle::class => ['all' => true], 
+  xiusin\SwooleBundle\SwooleBundle::class => ['all' => true], 
  // ...
 ];
 ```
