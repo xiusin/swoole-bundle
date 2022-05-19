@@ -2,6 +2,8 @@
 
 namespace xiusin\SwooleBundle\DependencyInjection;
 
+use Closure;
+use Exception;
 use Swoole\Process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -9,11 +11,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class WebServer
 {
     /* @var Server */
-    protected $server;
+    protected Server $server;
 
-    private static $instance;
+    private static WebServer $instance;
 
-    private $started;
+    private bool $started = false;
 
     /* @var ContainerInterface */
     protected $container;
@@ -26,7 +28,7 @@ class WebServer
     {
     }
 
-    public static function getInstance()
+    public static function getInstance(): WebServer
     {
         if (!self::$instance) {
             self::$instance = new self();
@@ -34,7 +36,7 @@ class WebServer
         return self::$instance;
     }
 
-    public function started()
+    public function started(): bool
     {
         return $this->started;
     }
@@ -55,7 +57,7 @@ class WebServer
         return $config['config']['pid_file'];
     }
 
-    public function start(SymfonyStyle $io, \Closure $callback, $daemonize = false)
+    public function start(SymfonyStyle $io, Closure $callback, $daemonize = false)
     {
         $this->server = new Server($this->container, $io, $daemonize);
         $this->started = true;
@@ -100,12 +102,12 @@ class WebServer
                 $io->error("PID[{$masterPid}] does not exist, or permission denied.");
             } else {
                 try {
-                    if ($res = Process::kill($masterPid, SIGUSR1)) {
+                    if (Process::kill($masterPid, SIGUSR1)) {
                         $io->writeln(sprintf('<info>[SUSS]</info> reload server successfully, PID[%d]. ', $masterPid));
                     } else {
                         $io->writeln(sprintf('<info>[ERRO]</info> reload server failed,PID [%d]', $masterPid));
                     }
-                } catch (\Exception $exception) {
+                } catch (Exception $exception) {
                     $io->error($exception->getMessage());
                 }
             }
