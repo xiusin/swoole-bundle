@@ -19,8 +19,5 @@ services:
     'xiusin\SwooleBundle\Command\SwooleRestartCommand':
         tags: [ { name: console.command, command: 'swoole:restart' } ]
 
-    'xiusin\SwooleBundle\Command\SwooleFixerCommand':
-        tags: [ { name: console.command, command: 'swoole:fixer' } ]
-
     'xiusin\SwooleBundle\Command\SwoolePublishCommand':
         tags: [ { name: console.command, command: 'swoole:publish' } ]

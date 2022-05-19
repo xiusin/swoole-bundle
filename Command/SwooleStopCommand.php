@@ -47,5 +47,7 @@ class SwooleStopCommand extends Command
             $server->setContainer($this->container);
             $server->stop($io);
         }
+
+        return Command::SUCCESS;
     }
 }

@@ -51,6 +51,7 @@ class SwooleStartCommand extends Command
         $server->start($io, function () use ($io, $output) {
             $this->info($io, $output);
         }, $daemonize);
+        return Command::SUCCESS;
     }
 
     // 打印组件信息

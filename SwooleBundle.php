@@ -8,7 +8,11 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 class SwooleBundle extends Bundle
 {
 
+    /**
+     * @var string 注册到容器的名称
+     */
     private $swooleName = 'app.swoole';
+
     public function boot()
     {
         if ($this->swooleHasStarted()) {
@@ -16,7 +20,7 @@ class SwooleBundle extends Bundle
         }
     }
 
-    private function swooleHasStarted()
+    private function swooleHasStarted(): bool
     {
         $server = WebServer::getInstance();
         if ($server) {

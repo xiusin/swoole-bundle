@@ -1,10 +1,9 @@
 <?php
 
-
 namespace xiusin\SwooleBundle;
 
-
 use App\Kernel;
+use Throwable;
 
 class KernelPool
 {
@@ -12,26 +11,28 @@ class KernelPool
     private $locker;
 
     private $size;
-    private $env;
-    private $debug;
 
     /**
-     * KernelPool constructor.
-     * @param $env
-     * @param $debug
-     * @param $size max object size
+     * KernelPool Kernel池
+     * @param int $size max object size
+     * @throws Throwable
      */
-    public function __construct($env, $debug, $size, $allinit)
+    public function __construct(int $size, $init = true)
     {
         $this->locker = new \swoole_lock(SWOOLE_MUTEX);
-        $this->env = $env;
-        $this->debug = $debug;
         $this->size = $size;
-        $allinit && $this->init();
+
+        if ($init) {
+            $this->init();
+        }
     }
 
-    private function init(){
-        for ($i = 0 ; $i < $this->size; $i++) {
+    /**
+     * @throws Throwable
+     */
+    private function init()
+    {
+        for ($i = 0; $i < $this->size; $i++) {
             $kernel = $this->get();
             $this->put($kernel);
         }
@@ -39,17 +40,14 @@ class KernelPool
 
     public function get(): Kernel
     {
-        $kernel = null;
         try {
             $this->locker->lock();
             if (count($this->pools)) {
                 $kernel = array_pop($this->pools);
             } else {
-                $kernel = new Kernel($this->env, $this->debug);
+                $kernel = new Kernel($_ENV['APP_ENV'], $_ENV['APP_DEBUG']);
             }
             return $kernel;
-        } catch (\Throwable $exception) {
-            throw $exception;
         } finally {
             $this->locker->unlock();
         }
@@ -64,8 +62,6 @@ class KernelPool
             } else {
                 unset($kernel);
             }
-        } catch (\Throwable $exception) {
-            throw  $exception;
         } finally {
             $this->locker->unlock();
         }

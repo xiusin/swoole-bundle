@@ -43,5 +43,6 @@ class SwooleRestartCommand extends Command
         if ($server->stop($io)) {
             $server->start($io,null, true);
         }
+        return Command::SUCCESS;
     }
 }

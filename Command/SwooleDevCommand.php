@@ -57,6 +57,7 @@ SH;
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->start(new SymfonyStyle($input, $output));
+        return Command::SUCCESS;
     }
 
     /**

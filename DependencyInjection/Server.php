@@ -2,33 +2,25 @@
 
 namespace xiusin\SwooleBundle\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\ErrorHandler\Debug;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Kernel;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
+use swoole_http_server;
+use swoole_websocket_server;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use xiusin\SwooleBundle\KernelPool;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
 use xiusin\SwooleBundle\Plugins\ServerEventListener;
 use xiusin\SwooleBundle\Plugins\TableInterface;
-use App\Kernel;
-use RuntimeException;
-use Swoole\Http\Request;
-use Swoole\Http\Response;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Debug\Exception\FlattenException;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Dotenv\Dotenv;
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
-use Twig\Environment;
 
 /**
  * Class Server.
  */
 class Server
 {
-    public $debug = false;
-
     const WORKER_START = 'WorkerStart';
 
     const START = 'Start';
@@ -69,25 +61,48 @@ class Server
 
     const MANAGER_STOP = 'ManagerStop';
 
-    private $chans = [];
+    /**
+     * 通道数组
+     *
+     * @var array
+     */
+    private array $chans = [];
 
-    private $tables = [];
+    /**
+     * 表数组
+     * @var array
+     */
+    private array $tables = [];
 
+    /**
+     * 配置
+     * @var array
+     */
     private $config = [];
 
+    /**
+     * swoole 服务配置
+     *
+     * @var mixed
+     */
     private $serverConfig = [];
 
-    private $io;
+    private SymfonyStyle $io;
 
-    private $container;
+    private ContainerInterface $container;
 
-    /* @var KernelPool */
-    private $kernelPool = null;
+    /**
+     * 内核池对象
+     *
+     * @var KernelPool
+     */
+    private KernelPool $kernelPool;
 
-    /* @var \swoole_http_server | \swoole_websocket_server */
+    /* @var swoole_http_server | swoole_websocket_server */
     private $handler;
 
     public $pidFile = '';
+
     /**
      * @param ContainerInterface $container
      * @param SymfonyStyle $io
@@ -103,7 +118,7 @@ class Server
         $this->handler = new $handlerClass($this->config['http_host'], $this->config['http_port'], SWOOLE_PROCESS);
 
         $this->serverConfig = $this->config['config'];
-        $this->pidFile = $this->serverConfig['pid_file'];
+        $this->pidFile = $this->serverConfig['pid_file'] ?? '';
         $this->handler->set($this->getSetting());
     }
 
@@ -112,7 +127,7 @@ class Server
         return $this->handler;
     }
 
-    private function getSetting()
+    private function getSetting(): array
     {
         return [
             'worker_num' => $this->serverConfig['worker_num'],
@@ -218,17 +233,6 @@ class Server
         }
     }
 
-    // @TODO 修改为配置文件
-    private function setTrustedProxiesAndHosts()
-    {
-        if ($trustedProxies = $_SERVER['TRUSTED_PROXIES'] ?? $_ENV['TRUSTED_PROXIES'] ?? false) {
-            SymfonyRequest::setTrustedProxies(explode(',', $trustedProxies), SymfonyRequest::HEADER_X_FORWARDED_ALL ^ SymfonyRequest::HEADER_X_FORWARDED_HOST);
-        }
-        if ($trustedHosts = $_SERVER['TRUSTED_HOSTS'] ?? $_ENV['TRUSTED_HOSTS'] ?? false) {
-            SymfonyRequest::setTrustedHosts([$trustedHosts]);
-        }
-    }
-
     private function warpToSymfonyRequest(Request $request)
     {
         $parameters = array_merge($request->post ?? [], $request->get ?? []);
@@ -284,14 +288,6 @@ class Server
         }
     }
 
-    private function ensureDebug()
-    {
-        if ($this->debug) {
-            umask(0000);
-            Debug::enable();
-        }
-    }
-
     private function isLinux()
     {
         return PHP_OS == "Linux";
@@ -308,22 +304,16 @@ class Server
     public function onWorkStart()
     {
         return function ($serv, $worker_id) {
-            if ($worker_id === 0) {
-                require dirname(__DIR__) . '/../../../config/bootstrap.php';
-                $this->debug = (bool)$_SERVER['APP_DEBUG'];
-                $this->ensureDebug();
-                $this->setTrustedProxiesAndHosts();
-            }
             if ($this->isLinux()) {
                 $processFlags = $worker_id >= $serv->setting['worker_num'] ? 'task' : 'event';
-                swoole_set_process_name(sprintf('symfony %s worker', $processFlags));
+                swoole_set_process_name(sprintf('swoole-bundle %s worker', $processFlags));
             }
         };
     }
 
     public function onRequest()
     {
-        $this->kernelPool = new KernelPool($_SERVER['APP_ENV'], $this->debug, 1000, true);
+        $this->kernelPool = new KernelPool(10, true);
         return function (Request $request, Response $response) {
             try {
                 $request->server['http_host'] = $this->getHttpHost();
@@ -331,22 +321,6 @@ class Server
                 $symfonyRequest = $this->warpToSymfonyRequest($request);
                 $this->requestBindToKernel($symfonyRequest, $k);
                 $this->finishResponse($k, $symfonyRequest, $response);
-            } catch (\Throwable $exception) {
-
-                /**
-                 * @var $twig Environment
-                 */
-                if ($this->container->has('twig')) {
-                    // convert to ExceptionController
-//                $controller = new Exeption($exception->getMessage(), $this->debug);
-//
-//                 convert to Exception
-//                $exception = FlattenException::create($exception);
-
-                    // render exception info
-//                $controller->showAction($symfonyRequest, $exception)->getContent()
-                }
-                $response->end($exception->getMessage() . ':' . $exception->getFile() . ":" . $exception->getLine() . ":" . $exception->getTraceAsString());
             } finally {
                 if (isset($k) && $k) $this->kernelPool->put($k);
             }

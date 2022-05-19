@@ -31,6 +31,6 @@ class SwooleReloadCommand extends Command
         $server = WebServer::getInstance();
         $server->setContainer($this->container);
         $server->reload(new SymfonyStyle($input, $output));
-        return 0;
+        return Command::SUCCESS;
     }
 }

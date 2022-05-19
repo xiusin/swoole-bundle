@@ -59,7 +59,7 @@ class SwoolePublishCommand extends Command
 //            file_put_contents($bundlePhpFile, $content);
 //        }
         $io->success('publish config file successfully');
-        return 0;
+        return Command::SUCCESS;
     }
 
 }
