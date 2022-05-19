@@ -2,16 +2,19 @@
 
 namespace xiusin\SwooleBundle\Plugins;
 
-abstract class ServerEventListener
+use swoole_http_server;
+use swoole_websocket_server;
+
+abstract class AbstractServerEventListener
 {
-    private $eventName = ''; //从server常量中直接设置如 : Server::onWorkStart
+    private string $eventName = ''; //从server常量中直接设置如 : Server::onWorkStart
     /**
-     * @var $server \swoole_http_server | \swoole_websocket_server
+     * @var $server swoole_http_server | swoole_websocket_server
      */
     private $server;
 
     /**
-     * @param $server \swoole_http_server | \swoole_websocket_server
+     * @param $server swoole_http_server | swoole_websocket_server
      */
     public function setServer($server)
     {
@@ -26,7 +29,7 @@ abstract class ServerEventListener
     /**
      * @return string
      */
-    public function getEventName()
+    public function getEventName(): string
     {
         return $this->eventName;
     }
@@ -36,5 +39,5 @@ abstract class ServerEventListener
     /**
      * @return string
      */
-    abstract public function eventName();
+    abstract public function eventName(): string;
 }

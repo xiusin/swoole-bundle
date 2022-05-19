@@ -2,10 +2,9 @@
 
 namespace xiusin\SwooleBundle\Plugins;
 
+use Swoole\Table;
+
 interface TableInterface
 {
-    /**
-     * @return \swoole_table
-     */
-    public function get(): \swoole_table;
+    public function get(): Table;
 }

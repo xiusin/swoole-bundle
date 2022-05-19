@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use xiusin\SwooleBundle\KernelPool;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
-use xiusin\SwooleBundle\Plugins\ServerEventListener;
+use xiusin\SwooleBundle\Plugins\AbstractServerEventListener;
 use xiusin\SwooleBundle\Plugins\TableInterface;
 
 /**
@@ -220,9 +220,9 @@ class Server
         // use event_listeners register ws hander
         $listeners = $this->config['event_listeners'];
         foreach ($listeners as $listenerName) {
-            if (in_array(ServerEventListener::class, class_parents($listenerName, true))) {
+            if (in_array(AbstractServerEventListener::class, class_parents($listenerName, true))) {
                 /**
-                 * @var $listener ServerEventListener
+                 * @var $listener AbstractServerEventListener
                  */
                 $listener = new $listenerName();
                 $listener->setServer($this->handler);

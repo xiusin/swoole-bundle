@@ -12,12 +12,12 @@ class Configuration implements ConfigurationInterface
      * 配置树根节点名称
      * @var string
      */
-    protected $rootNodeName = 'swoole';
+    protected string $rootNodeName = 'swoole';
 
     /**
      * @var string[]
      */
-    protected $serverEnumList = [
+    protected array $serverEnumList = [
         \Swoole\Http\Server::class,
         \Swoole\WebSocket\Server::class,
         \swoole_http_server::class,
