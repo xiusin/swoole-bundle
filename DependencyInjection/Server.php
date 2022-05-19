@@ -140,6 +140,9 @@ class Server
             'log_file' => $this->serverConfig['log_file'],
             'daemonize' => $this->serverConfig['daemonize'] ? 1 : 0,
             'pid_file' => $this->pidFile,
+            'event_object' => true,
+            'enable_coroutine' => $this->serverConfig['enable_coroutine'] ?? true,
+            'reload_async' => $this->serverConfig['reload_async'] ?? true,
         ];
     }
 

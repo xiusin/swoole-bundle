@@ -18,7 +18,7 @@ class SwooleStartCommand extends Command
     protected $container;
 
     /* @var WebServer */
-    private $server = null;
+    private $server;
 
     public function __construct(ContainerInterface $container)
     {
@@ -43,11 +43,12 @@ class SwooleStartCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $daemonize = $input->getOption('daemonize');
-        $daemonize = !is_int($daemonize) || intval($daemonize) ? true : false;
+        $daemonize = !is_int($daemonize) || intval($daemonize);
         $server = WebServer::getInstance();
         $this->server = $server;
         $server->setContainer($this->container);
         $io = new SymfonyStyle($input, $output);
+
         $server->start($io, function () use ($io, $output) {
             $this->info($io, $output);
         }, $daemonize);
@@ -68,16 +69,13 @@ class SwooleStartCommand extends Command
                 ['Configuration' => $this->getApplication()->getName(), 'Values' => $this->getApplication()->getVersion()],
                 ['Configuration' => 'Env', 'Values' => $_SERVER['APP_ENV']],
                 ['Configuration' => 'Debug', 'Values' => $_SERVER['APP_DEBUG'] ? 'true' : 'false'],
-                ['Configuration' => str_repeat('-', 15), 'Values' => str_repeat('-', 40)],
+                ['Configuration' => str_repeat('-', 20), 'Values' => str_repeat('-', 50)],
                 ['Configuration' => 'Server', 'Values' => $config['server']],
                 ['Configuration' => 'running_mode', 'Values' => 'Process'],
                 ['Configuration' => 'worker_num', 'Values' => $config['config']['worker_num']],
                 ['Configuration' => 'reactor_num', 'Values' => $config['config']['reactor_num']],
                 ['Configuration' => 'memory_limit', 'Values' => ini_get('memory_limit')],
                 ['Configuration' => 'document_root', 'Values' => $config['config']['document_root']],
-//                ['Configuration' => 'master_pid', 'Values' => $this->server->httpServer()->getHandler()->master_pid],
-//                ['Configuration' => 'manager_pid', 'Values' => $this->server->httpServer()->getHandler()->manager_pid],
-//                ['Configuration' => 'worker_pid', 'Values' => $this->server->httpServer()->getHandler()->worker_pid],
             ])
             ->setColumnWidth(0, 20)
             ->setColumnWidth(1, 40)
