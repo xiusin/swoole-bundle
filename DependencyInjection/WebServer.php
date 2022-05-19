@@ -10,10 +10,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class WebServer
 {
-    /* @var Server */
+    /**
+     * @var Server
+     */
     protected Server $server;
 
-    private static WebServer $instance;
+    /**
+     * @var WebServer
+     */
+    private static $instance;
 
     private bool $started = false;
 
