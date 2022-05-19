@@ -130,6 +130,8 @@ class Server
     private function getSetting(): array
     {
         return [
+            'enable_coroutine' => $this->serverConfig['enable_coroutine'] ?? true,
+            'reload_async' => $this->serverConfig['reload_async'] ?? true,
             'worker_num' => $this->serverConfig['worker_num'],
             'reactor_num' => $this->serverConfig['reactor_num'],
             'upload_tmp_dir' => sys_get_temp_dir(),
@@ -141,8 +143,6 @@ class Server
             'daemonize' => $this->serverConfig['daemonize'] ? 1 : 0,
             'pid_file' => $this->pidFile,
             'event_object' => true,
-            'enable_coroutine' => $this->serverConfig['enable_coroutine'] ?? true,
-            'reload_async' => $this->serverConfig['reload_async'] ?? true,
         ];
     }
 
