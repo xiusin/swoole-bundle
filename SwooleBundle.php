@@ -23,11 +23,7 @@ class SwooleBundle extends Bundle
     private function swooleHasStarted(): bool
     {
         $server = WebServer::getInstance();
-        if ($server) {
-            return $server->started();
-        } else {
-            return false;
-        }
+        return $server && (bool)$server->started();
     }
 
     private function registerServices()
