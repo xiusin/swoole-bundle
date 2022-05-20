@@ -2,9 +2,9 @@
 
 namespace xiusin\SwooleBundle\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use function swoole_cpu_num;
 
 class Configuration implements ConfigurationInterface
 {
@@ -44,8 +44,8 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('http_host')->defaultValue('0.0.0.0')->end()
             ->arrayNode('config')
             ->children()
-            ->integerNode('reactor_num')->defaultValue(\swoole_cpu_num())->end()
-            ->integerNode('worker_num')->defaultValue(\swoole_cpu_num() * 2)->end()
+            ->integerNode('reactor_num')->defaultValue(swoole_cpu_num())->end()
+            ->integerNode('worker_num')->defaultValue(swoole_cpu_num() * 2)->end()
             ->integerNode('log_level')->defaultValue(5)->end()
             ->booleanNode('http_compression')->defaultValue(true)->end()
             ->integerNode('max_request')->min(0)->defaultValue(0)->end()

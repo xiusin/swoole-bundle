@@ -18,7 +18,7 @@ class SwooleStartCommand extends Command
     protected $container;
 
     /* @var WebServer */
-    private $server;
+    private $server = null;
 
     public function __construct(ContainerInterface $container)
     {
@@ -43,12 +43,11 @@ class SwooleStartCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $daemonize = $input->getOption('daemonize');
-        $daemonize = !is_int($daemonize) || intval($daemonize);
+        $daemonize = !is_int($daemonize) || intval($daemonize) ? true : false;
         $server = WebServer::getInstance();
         $this->server = $server;
         $server->setContainer($this->container);
         $io = new SymfonyStyle($input, $output);
-
         $server->start($io, function () use ($io, $output) {
             $this->info($io, $output);
         }, $daemonize);
@@ -61,16 +60,14 @@ class SwooleStartCommand extends Command
         $config = $this->container->getParameter("swoole.config");
         $io->writeln('');
         $table = new Table($output);
-        $table->setHeaders(['Configuration', 'Values'])
+
+        $table
             ->setHeaderTitle('SPEED YOUR SYMFONY PROJECT')
             ->setRows([
-                ['Configuration' => 'PHP', 'Values' => phpversion()],
-                ['Configuration' => 'Swoole', 'Values' => \swoole_version()],
-                ['Configuration' => $this->getApplication()->getName(), 'Values' => $this->getApplication()->getVersion()],
-                ['Configuration' => 'Env', 'Values' => $_SERVER['APP_ENV']],
-                ['Configuration' => 'Debug', 'Values' => $_SERVER['APP_DEBUG'] ? 'true' : 'false'],
+                ['Configuration' => 'Info', 'Values' => "PHP:" . phpversion() . "   Symfony:" . $this->getApplication()->getVersion() . "   Swoole:" . \swoole_version()],
+                ['Configuration' => 'Env', 'Values' => "APP_ENV=" . $_SERVER['APP_ENV'] . '     APP_DEBUG='.($_SERVER['APP_DEBUG'] ? 'true' : 'false')],
                 ['Configuration' => str_repeat('-', 20), 'Values' => str_repeat('-', 50)],
-                ['Configuration' => 'Server', 'Values' => $config['server']],
+                ['Configuration' => 'server', 'Values' => $config['server']],
                 ['Configuration' => 'running_mode', 'Values' => 'Process'],
                 ['Configuration' => 'worker_num', 'Values' => $config['config']['worker_num']],
                 ['Configuration' => 'reactor_num', 'Values' => $config['config']['reactor_num']],
