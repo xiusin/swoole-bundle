@@ -77,7 +77,9 @@ SH;
                 $io->error(sprintf('create the [%s] failed', $shFile));
                 return;
             }
-            exec('ps aux | grep \'swoole:start\' | awk \'{print "kill -9 " $2}\' | bash 2>&1 >/dev/null');
+
+            exec('ps aux | grep \'swoole\' | awk \'{print "kill -9 " $2}\' | bash 2>&1 >/dev/null');
+
             $process = new Process(function (Process $worker) use ($out, $shFile) {
                 $worker->exec($out[0], [$shFile]);
             }, false, 0);
