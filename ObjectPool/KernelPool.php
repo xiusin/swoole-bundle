@@ -1,16 +1,30 @@
 <?php
 
-namespace xiusin\SwooleBundle;
+namespace xiusin\SwooleBundle\ObjectPool;
 
 use App\Kernel;
+use Swoole\Lock;
 use Throwable;
 
 class KernelPool
 {
-    private $pools = [];
-    private $locker;
+    /**
+     * Kernel池数组
+     * @var array
+     */
+    private array $pools = [];
 
-    private $size;
+    /**
+     * 互斥锁
+     * @var Lock
+     */
+    private Lock $locker;
+
+    /**
+     * 最大池容量
+     * @var int
+     */
+    private int $size;
 
     /**
      * KernelPool Kernel池
@@ -19,7 +33,7 @@ class KernelPool
      */
     public function __construct(int $size, $init = true)
     {
-        $this->locker = new \swoole_lock(SWOOLE_MUTEX);
+        $this->locker = new Lock(SWOOLE_MUTEX);
         $this->size = $size;
 
         if ($init) {

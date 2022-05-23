@@ -22,8 +22,7 @@ class WebServer
 
     private bool $started = false;
 
-    /* @var ContainerInterface */
-    protected $container;
+    protected ContainerInterface $container;
 
     private function __construct()
     {
@@ -104,7 +103,7 @@ class WebServer
         } else {
             $masterPid = intval(file_get_contents($this->getPidFile()));
             if (!Process::kill($masterPid, 0)) {
-                $io->error("PID[{$masterPid}] does not exist, or permission denied.");
+                $io->error("PID[$masterPid] does not exist, or permission denied.");
             } else {
                 try {
                     if (Process::kill($masterPid, SIGUSR1)) {

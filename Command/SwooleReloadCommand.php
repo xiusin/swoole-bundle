@@ -13,7 +13,7 @@ class SwooleReloadCommand extends Command
 {
     protected static $defaultName = 'swoole:reload';
 
-    protected $container;
+    protected ContainerInterface $container;
 
     public function __construct(ContainerInterface $container)
     {
@@ -29,8 +29,10 @@ class SwooleReloadCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $server = WebServer::getInstance();
+
         $server->setContainer($this->container);
         $server->reload(new SymfonyStyle($input, $output));
+
         return Command::SUCCESS;
     }
 }

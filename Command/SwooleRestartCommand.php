@@ -30,19 +30,22 @@ class SwooleRestartCommand extends Command
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|void|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+
         $server = WebServer::getInstance();
         $server->setContainer($this->container);
+
         if ($server->stop($io)) {
-            $server->start($io,null, true);
+            $server->start($io, null, true);
         }
+
         return Command::SUCCESS;
     }
 }

@@ -10,15 +10,13 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use function swoole_version;
 
 class SwooleStartCommand extends Command
 {
     protected static $defaultName = 'swoole:start';
 
-    protected $container;
-
-    /* @var WebServer */
-    private $server = null;
+    protected ContainerInterface $container;
 
     public function __construct(ContainerInterface $container)
     {
@@ -38,19 +36,19 @@ class SwooleStartCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|void|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $daemonize = $input->getOption('daemonize');
-        $daemonize = !is_int($daemonize) || intval($daemonize) ? true : false;
+        $daemonize = boolval($input->getOption('daemonize'));
+
         $server = WebServer::getInstance();
-        $this->server = $server;
+
         $server->setContainer($this->container);
         $io = new SymfonyStyle($input, $output);
-        $server->start($io, function () use ($io, $output) {
-            $this->info($io, $output);
-        }, $daemonize);
+
+        $server->start($io, fn() => $this->info($io, $output), $daemonize);
+
         return Command::SUCCESS;
     }
 
@@ -64,8 +62,8 @@ class SwooleStartCommand extends Command
         $table
             ->setHeaderTitle('SPEED YOUR SYMFONY PROJECT')
             ->setRows([
-                ['Configuration' => 'Info', 'Values' => "PHP:" . phpversion() . "   Symfony:" . $this->getApplication()->getVersion() . "   Swoole:" . \swoole_version()],
-                ['Configuration' => 'Env', 'Values' => "APP_ENV=" . $_SERVER['APP_ENV'] . '     APP_DEBUG='.($_SERVER['APP_DEBUG'] ? 'true' : 'false')],
+                ['Configuration' => 'Info', 'Values' => "PHP:" . phpversion() . "   Symfony:" . $this->getApplication()->getVersion() . "   Swoole:" . swoole_version()],
+                ['Configuration' => 'Env', 'Values' => "APP_ENV=" . $_SERVER['APP_ENV'] . '     APP_DEBUG=' . ($_SERVER['APP_DEBUG'] ? 'true' : 'false')],
                 ['Configuration' => str_repeat('-', 20), 'Values' => str_repeat('-', 50)],
                 ['Configuration' => 'server', 'Values' => $config['server']],
                 ['Configuration' => 'running_mode', 'Values' => 'Process'],

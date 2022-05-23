@@ -2,6 +2,8 @@
 
 namespace xiusin\SwooleBundle\DependencyInjection;
 
+use swoole_http_server;
+use swoole_websocket_server;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use function swoole_cpu_num;
@@ -20,11 +22,11 @@ class Configuration implements ConfigurationInterface
     protected array $serverEnumList = [
         \Swoole\Http\Server::class,
         \Swoole\WebSocket\Server::class,
-        \swoole_http_server::class,
-        \swoole_websocket_server::class,
+        swoole_http_server::class,
+        swoole_websocket_server::class,
     ];
 
-    protected $treeBuilder;
+    protected TreeBuilder $treeBuilder;
 
     /**
      * Generates the configuration tree builder.
@@ -36,7 +38,7 @@ class Configuration implements ConfigurationInterface
         $this->treeBuilder = new TreeBuilder($this->rootNodeName);
         $this->treeBuilder->getRootNode()
             ->children()
-            ->enumNode('server')->values($this->serverEnumList)->defaultValue(\swoole_http_server::class)->end()
+            ->enumNode('server')->values($this->serverEnumList)->defaultValue(swoole_http_server::class)->end()
             ->arrayNode('processes')->scalarPrototype()->end()->end()
             ->arrayNode('event_listeners')->scalarPrototype()->end()->end()
             ->arrayNode('tables')->scalarPrototype()->end()->end()

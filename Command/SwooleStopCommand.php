@@ -2,6 +2,7 @@
 
 namespace xiusin\SwooleBundle\Command;
 
+use Swoole\Http\Server;
 use xiusin\SwooleBundle\DependencyInjection\WebServer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,7 +15,7 @@ class SwooleStopCommand extends Command
 {
     protected static $defaultName = 'swoole:stop';
 
-    protected $container;
+    protected ContainerInterface $container;
 
     public function __construct(ContainerInterface $container)
     {
@@ -23,7 +24,7 @@ class SwooleStopCommand extends Command
     }
 
     /**
-     * @var \Swoole\Http\Server
+     * @var Server
      */
     protected function configure()
     {
@@ -32,12 +33,12 @@ class SwooleStopCommand extends Command
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|void|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ($input->getOption('all')) {
             exec('ps aux | grep "swoole:start" | grep -v "grep" | awk \'{print "kill -9 " $2}\' | bash');

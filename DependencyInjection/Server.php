@@ -3,14 +3,15 @@
 namespace xiusin\SwooleBundle\DependencyInjection;
 
 use App\Kernel;
+use Closure;
+use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use swoole_http_server;
-use swoole_websocket_server;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
-use xiusin\SwooleBundle\KernelPool;
+use Throwable;
+use xiusin\SwooleBundle\ObjectPool\KernelPool;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
 use xiusin\SwooleBundle\Plugins\AbstractServerEventListener;
@@ -78,17 +79,20 @@ class Server
      * 配置
      * @var array
      */
-    private $config = [];
+    private $config;
 
     /**
      * swoole 服务配置
      *
-     * @var mixed
+     * @var array
      */
-    private $serverConfig = [];
+    private $serverConfig;
 
     private SymfonyStyle $io;
 
+    /**
+     * @var ContainerInterface
+     */
     private ContainerInterface $container;
 
     /**
@@ -98,27 +102,34 @@ class Server
      */
     private KernelPool $kernelPool;
 
-    /* @var swoole_http_server | swoole_websocket_server */
+    /**
+     * @var \Swoole\Http\Server | \Swoole\WebSocket\Server 服务对象
+     */
     private $handler;
 
-    public $pidFile = '';
+    /**
+     * @var string 当前服务Pid文件地址
+     */
+    public $pidFile;
 
     /**
      * @param ContainerInterface $container
      * @param SymfonyStyle $io
      * @param bool $daemonize
      */
-    public function __construct(ContainerInterface $container, SymfonyStyle $io, $daemonize = false)
+    public function __construct(ContainerInterface $container, SymfonyStyle $io, bool $daemonize = false)
     {
         $this->container = $container;
+
         $this->io = $io;
         $this->config = $container->getParameter('swoole.config');
         $this->config['config']['daemonize'] = $daemonize;
+
         $handlerClass = $this->config['server'];
         $this->handler = new $handlerClass($this->config['http_host'], $this->config['http_port'], SWOOLE_PROCESS);
 
         $this->serverConfig = $this->config['config'];
-        $this->pidFile = $this->serverConfig['pid_file'] ?? '';
+        $this->pidFile = $this->serverConfig['pid_file'] ?? $container->getParameter('kernel.cache_dir') . '/swoole.pid';
         $this->handler->set($this->getSetting());
     }
 
@@ -178,7 +189,7 @@ class Server
                     $processHandler->handle($process, $this->handler);
                 }));
             } else {
-                throw new \RuntimeException('processes 配置错误, 请继承' . ProcessInterface::class . '接口');
+                throw new RuntimeException('processes 配置错误, 请继承' . ProcessInterface::class . '接口');
             }
         }
     }
@@ -190,7 +201,7 @@ class Server
             if (in_array(TableInterface::class, class_implements($table, true))) {
                 $this->addTable($table, new $table());
             } else {
-                throw new \RuntimeException('table 配置错误, 请继承' . TableInterface::class . '接口');
+                throw new RuntimeException('table 配置错误, 请继承' . TableInterface::class . '接口');
             }
         }
     }
@@ -202,7 +213,7 @@ class Server
             if (in_array(ChanInterface::class, class_implements($chan['class'], true))) {
                 $this->addChan($chan['class'], new $chan['class']($chan['size']));
             } else {
-                throw new \RuntimeException('chan 配置错误, class请继承' . ChanInterface::class . '接口');
+                throw new RuntimeException('chan 配置错误, class请继承' . ChanInterface::class . '接口');
             }
         }
     }
@@ -236,7 +247,7 @@ class Server
         }
     }
 
-    private function warpToSymfonyRequest(Request $request)
+    private function warpToSymfonyRequest(Request $request): SymfonyRequest
     {
         $parameters = array_merge($request->post ?? [], $request->get ?? []);
         return SymfonyRequest::create(
@@ -291,12 +302,12 @@ class Server
         }
     }
 
-    private function isLinux()
+    private function isLinux(): bool
     {
         return PHP_OS == "Linux";
     }
 
-    public function onStart()
+    public function onStart(): Closure
     {
         return function () {
             $host = 'http://' . $this->getHttpHost();
@@ -304,7 +315,7 @@ class Server
         };
     }
 
-    public function onWorkStart()
+    public function onWorkStart(): Closure
     {
         return function ($serv, $worker_id) {
             if ($this->isLinux()) {
@@ -314,7 +325,10 @@ class Server
         };
     }
 
-    public function onRequest()
+    /**
+     * @throws Throwable
+     */
+    public function onRequest(): Closure
     {
         $this->kernelPool = new KernelPool(10, true);
         return function (Request $request, Response $response) {
@@ -330,7 +344,7 @@ class Server
         };
     }
 
-    private function getHttpHost()
+    private function getHttpHost(): string
     {
         $host = $this->config['http_host'];
         $port = $this->config['http_port'];

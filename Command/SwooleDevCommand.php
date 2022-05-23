@@ -2,6 +2,7 @@
 
 namespace xiusin\SwooleBundle\Command;
 
+use Swoole\Http\Server;
 use Swoole\Process;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,9 +14,9 @@ class SwooleDevCommand extends Command
 {
     protected static $defaultName = 'swoole:dev';
 
-    protected $container;
+    protected ContainerInterface $container;
 
-    protected $sh = <<<SH
+    protected string $sh = <<<SH
 #!/usr/bin/env bash
 WORK_DIR="src/"
 php bin/console swoole:start -d -v
@@ -41,7 +42,7 @@ SH;
     }
 
     /**
-     * @var \Swoole\Http\Server
+     * @var Server
      */
     protected function configure()
     {
@@ -49,12 +50,12 @@ SH;
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|void|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->start(new SymfonyStyle($input, $output));
         return Command::SUCCESS;
@@ -67,11 +68,11 @@ SH;
     {
         exec('which sh', $out, $ret);
         if ($ret) {
-            $io->error('connot find the command `sh`');
+            $io->error('can\'t find the command `sh`');
         } else {
             //发布文件
             $projectDir = $this->container->getParameter('kernel.project_dir');
-            $shFile = $projectDir.'/bin/fswatch.sh';
+            $shFile = $projectDir . '/bin/fswatch.sh';
             if (!file_exists($shFile) && !file_put_contents($shFile, $this->sh)) {
                 $io->error(sprintf('create the [%s] failed', $shFile));
                 return;

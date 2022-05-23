@@ -2,7 +2,7 @@
 
 namespace xiusin\SwooleBundle\Command;
 
-use Swoole\Process;
+use Swoole\Http\Server;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,7 +23,7 @@ class SwoolePublishCommand extends Command
     }
 
     /**
-     * @var \Swoole\Http\Server
+     * @var Server
      */
     protected function configure()
     {
@@ -34,30 +34,32 @@ class SwoolePublishCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|void|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-
         $io = new SymfonyStyle($input, $output);
+
         $configDir = $this->container->getParameter("kernel.project_dir") . '/config';
+
         $bundleConfig = realpath(__DIR__ . '/../Resources/config/swoole.yaml');
-        $swooleYamlFile = $configDir . '/packages/swoole.yaml';
-        if (!file_exists($swooleYamlFile)) {
-            if (false !== file_put_contents($swooleYamlFile, file_get_contents($bundleConfig))) {
-                $io->success($swooleYamlFile . ' has created');
+        $yamlFile = $configDir . '/packages/swoole.yaml';
+
+        if (!file_exists($yamlFile)) {
+            if (false !== file_put_contents($yamlFile, file_get_contents($bundleConfig))) {
+                $io->success($yamlFile . ' has created');
             } else {
-                $io->error($swooleYamlFile . ' create failed');
+                $io->error($yamlFile . ' create failed');
             }
         }
-//        $bundlePhpFile = $configDir . '/bundles.php';
-//        $arr = include $bundlePhpFile;
-//
-//        if (!isset($arr[SwooleBundle::class])) {
-//            $content = file_get_contents($bundlePhpFile);
-//            $content = str_replace('];', "xiusin\SwooleBundle\SwooleBundle::class => ['all' => true]," . PHP_EOL . "];");
-//            file_put_contents($bundlePhpFile, $content);
-//        }
+
+        $bundles = sprintf("%s/bundles.php", $configDir);
+        $arr = require_once $bundles;
+
+        if (!isset($arr[SwooleBundle::class])) {
+            $content = str_replace('];', "\txiusin\SwooleBundle\SwooleBundle::class => ['all' => true]," . PHP_EOL . "];", file_get_contents($bundles));
+            file_put_contents($bundles, $content);
+        }
         $io->success('publish config file successfully');
         return Command::SUCCESS;
     }
