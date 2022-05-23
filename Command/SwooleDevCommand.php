@@ -66,9 +66,9 @@ SH;
      */
     protected function start(SymfonyStyle $io)
     {
-        exec('which sh', $out, $ret);
+        exec('which bash', $out, $ret);
         if ($ret) {
-            $io->error('can\'t find the command `sh`');
+            $io->error('can\'t find the command `bash`');
         } else {
             //发布文件
             $projectDir = $this->container->getParameter('kernel.project_dir');
@@ -78,7 +78,7 @@ SH;
                 return;
             }
 
-            exec('ps aux | grep \'swoole\' | awk \'{print "kill -9 " $2}\' | bash 2>&1 >/dev/null');
+            exec('ps aux | grep \'swoole\' | grep -v grep | grep -v \'swoole:dev\' | awk \'{print "kill -9 " $2}\' | bash 2>&1 >/dev/null');
 
             $process = new Process(function (Process $worker) use ($out, $shFile) {
                 $worker->exec($out[0], [$shFile]);
