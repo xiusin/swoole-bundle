@@ -9,9 +9,17 @@ class SwooleTableSessionHandler extends AbstractSessionHandler
 {
     protected Table $table;
 
+    /**
+     * 存活时间
+     * @var int
+     */
     private int $maxlifetime;
-    private string $prefix;
 
+    /**
+     * sess 前缀
+     * @var string|null
+     */
+    private string $prefix;
 
     /**
      *
@@ -87,6 +95,12 @@ class SwooleTableSessionHandler extends AbstractSessionHandler
         return true;
     }
 
+    /**
+     * 更新时间戳
+     * @param string $session_id
+     * @param string $session_data
+     * @return bool|void
+     */
     public function updateTimestamp($session_id, $session_data)
     {
         return $this->doWrite($session_id, $session_data);
