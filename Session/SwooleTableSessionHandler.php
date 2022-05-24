@@ -46,14 +46,13 @@ class SwooleTableSessionHandler extends AbstractSessionHandler
 
         // 启动Gc协程
         go(function () use ($gctime) {
-            while (true) {
+            swoole_timer_tick($gctime * 1000, function () {
                 foreach ($this->table as $row) {
                     if ($row['expires_at'] < time()) {
                         $this->table->del($row['id']);
                     }
                 }
-                sleep($gctime);
-            }
+            });
         });
 
     }

@@ -7,11 +7,10 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SwooleBundle extends Bundle
 {
-
     /**
      * @var string 注册到容器的名称
      */
-    private $swooleName = 'app.swoole';
+    private string $swooleName = 'app.swoole';
 
     public function boot()
     {
@@ -22,15 +21,21 @@ class SwooleBundle extends Bundle
 
     private function swooleHasStarted(): bool
     {
-        $server = WebServer::getInstance();
-        return $server && (bool)$server->started();
+        return WebServer::getInstance()->started();
     }
 
     private function registerServices()
     {
         $this->container->set($this->swooleName, WebServer::getInstance()->httpServer());
-        // todo 这里不要强依赖session
-        //        $req = $this->container->get('kernel')->request;
-//        $this->container->get('session')->setId($req->cookies->get(session_name()));
+
+        $this->setSessionId();
+    }
+
+    private function setSessionId()
+    {
+        if ($this->container->has('session')) {
+            $req = $this->container->get('kernel')->request;
+            $this->container->get('session')->setId($req->cookies->get(session_name()));
+        }
     }
 }
