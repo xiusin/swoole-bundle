@@ -4,6 +4,7 @@ namespace xiusin\SwooleBundle\DependencyInjection;
 
 use App\Kernel;
 use Closure;
+use Exception;
 use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
@@ -264,7 +265,7 @@ class Server
      * @param SymfonyRequest $symfonyRequest
      * @param Response $response
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function finishResponse(Kernel $kernel, SymfonyRequest $symfonyRequest, Response $response)
     {

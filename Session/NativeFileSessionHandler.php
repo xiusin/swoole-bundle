@@ -2,6 +2,8 @@
 
 namespace xiusin\SwooleBundle\Session;
 
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\AbstractSessionHandler;
 
 class NativeFileSessionHandler extends AbstractSessionHandler
@@ -22,13 +24,13 @@ class NativeFileSessionHandler extends AbstractSessionHandler
         $baseDir = $savePath;
         if ($count = substr_count($savePath, ';')) {
             if ($count > 2) {
-                throw new \InvalidArgumentException(sprintf('Invalid argument $savePath \'%s\'', $savePath));
+                throw new InvalidArgumentException(sprintf('Invalid argument $savePath \'%s\'', $savePath));
             }
             $baseDir = ltrim(strrchr($savePath, ';'), ';');
         }
 
         if ($baseDir && !is_dir($baseDir) && !@mkdir($baseDir, 0777, true) && !is_dir($baseDir)) {
-            throw new \RuntimeException(sprintf('Session Storage was not able to create directory "%s"', $baseDir));
+            throw new RuntimeException(sprintf('Session Storage was not able to create directory "%s"', $baseDir));
         }
     }
 

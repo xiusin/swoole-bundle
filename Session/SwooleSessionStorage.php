@@ -1,12 +1,12 @@
 <?php
-/**
- * Author: chenchengbin@altamob.com
- * Date: 2018-08-31 15:49
- * Description: Please write description.
- */
 
 namespace xiusin\SwooleBundle\Session;
 
+use ErrorException;
+use InvalidArgumentException;
+use LogicException;
+use SessionHandler;
+use SessionHandlerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\StrictSessionHandler;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
@@ -40,7 +40,7 @@ class SwooleSessionStorage implements SessionStorageInterface
     /**
      * 获取saveHandler实例.
      *
-     * @return AbstractProxy|\SessionHandlerInterface
+     * @return AbstractProxy|SessionHandlerInterface
      */
     public function getSaveHandler()
     {
@@ -113,12 +113,11 @@ class SwooleSessionStorage implements SessionStorageInterface
         }
 
         set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-            throw new \ErrorException($errstr, $errno, E_WARNING, $errfile, $errline);
+            throw new ErrorException($errstr, $errno, E_WARNING, $errfile, $errline);
         }, E_WARNING);
 
         try {
             $this->getSaveHandler()->write($this->getId(), serialize($this->session));
-        } catch (\ErrorException $e) {
         } finally {
             restore_error_handler();
         }
@@ -138,7 +137,7 @@ class SwooleSessionStorage implements SessionStorageInterface
     public function registerBag(SessionBagInterface $bag)
     {
         if ($this->started) {
-            throw new \LogicException('Cannot register a bag when the session is already started.');
+            throw new LogicException('Cannot register a bag when the session is already started.');
         }
         $this->bags[$bag->getName()] = $bag;
     }
@@ -177,15 +176,13 @@ class SwooleSessionStorage implements SessionStorageInterface
 
     public function setSaveHandler($saveHandler = null)
     {
-        if (!$saveHandler instanceof AbstractProxy &&
-            !$saveHandler instanceof \SessionHandlerInterface &&
-            null !== $saveHandler) {
-            throw new \InvalidArgumentException('Must be instance of AbstractProxy; implement \SessionHandlerInterface; or be null.');
+        if (!$saveHandler instanceof SessionHandlerInterface && null !== $saveHandler) {
+            throw new InvalidArgumentException('Must be instance of AbstractProxy; implement \SessionHandlerInterface; or be null.');
         }
-        if (!$saveHandler instanceof AbstractProxy && $saveHandler instanceof \SessionHandlerInterface) {
+        if (!$saveHandler instanceof AbstractProxy && $saveHandler instanceof SessionHandlerInterface) {
             $saveHandler = new SessionHandlerProxy($saveHandler);
         } elseif (!$saveHandler instanceof AbstractProxy) {
-            $saveHandler = new SessionHandlerProxy(new StrictSessionHandler(new \SessionHandler()));
+            $saveHandler = new SessionHandlerProxy(new StrictSessionHandler(new SessionHandler()));
         }
         $this->saveHandler = $saveHandler;
     }
