@@ -60,7 +60,6 @@ swoole:
 
 
 
-
 配置bundle:
 
 ```yaml
@@ -78,7 +77,7 @@ services:
     swoole.session.storage:
         class: App\Bundles\SwooleBundle\Plugins\Session\SwooleSessionStorage
         arguments:
-            - '@swoole.session.handler'
+            - '@swoole.session.handler' # 参数传入session handler
     app.swoole:
         public: true
         synthetic: true

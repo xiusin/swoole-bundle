@@ -2,7 +2,6 @@
 
 namespace xiusin\SwooleBundle\Session;
 
-use Swoole\Coroutine;
 use Swoole\Table;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\AbstractSessionHandler;
 
@@ -10,12 +9,25 @@ class SwooleTableSessionHandler extends AbstractSessionHandler
 {
     protected Table $table;
 
-    private $maxlifetime;
-    private $prefix;
+    private int $maxlifetime;
+    private string $prefix;
 
-    public function __construct($prefix = null)
+
+    /**
+     *
+     *     swoole.session.handler:
+     *      class: App\Bundles\SwooleBundle\Plugins\Session\SwooleTableSessionHandler
+     *      arguments:
+     *      - 'sess_'
+     *      - 1200
+     *      - 30
+     * @param null $prefix
+     * @param int $maxlifetime
+     * @param int $gctime
+     */
+    public function __construct($prefix = null, int $maxlifetime = 0, int $gctime = 3)
     {
-        $this->maxlifetime = ini_get('session.gc_maxlifetime');
+        $this->maxlifetime = $maxlifetime;
         $this->prefix = $prefix;
 
         $this->table = new Table(1024, 0.2);
@@ -25,18 +37,16 @@ class SwooleTableSessionHandler extends AbstractSessionHandler
 
 
         // 启动Gc协程
-        go(function () {
+        go(function () use ($gctime) {
             while (true) {
                 foreach ($this->table as $row) {
                     if ($row['expires_at'] < time()) {
                         $this->table->del($row['id']);
                     }
                 }
-                sleep(3);
+                sleep($gctime);
             }
         });
-
-
 
     }
 
