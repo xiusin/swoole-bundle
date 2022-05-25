@@ -4,6 +4,7 @@ namespace xiusin\SwooleBundle\Session;
 
 use Swoole\Table;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\AbstractSessionHandler;
+use function Swoole\Coroutine\run;
 
 class SwooleTableSessionHandler extends AbstractSessionHandler
 {
@@ -45,7 +46,7 @@ class SwooleTableSessionHandler extends AbstractSessionHandler
 
 
         // 启动Gc协程
-        go(function () use ($gctime) {
+        run(function () use ($gctime) {
             swoole_timer_tick($gctime * 1000, function () {
                 foreach ($this->table as $row) {
                     if ($row['expires_at'] < time()) {
