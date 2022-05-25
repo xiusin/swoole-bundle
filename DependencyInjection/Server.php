@@ -15,6 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Throwable;
 use xiusin\SwooleBundle\ObjectPool\KernelPool;
+use xiusin\SwooleBundle\ObjectPool\RequestPool;
 use xiusin\SwooleBundle\Plugins\ChanInterface;
 use xiusin\SwooleBundle\Plugins\ProcessInterface;
 use xiusin\SwooleBundle\Plugins\AbstractServerEventListener;
@@ -104,6 +105,12 @@ class Server
      * @var KernelPool
      */
     private KernelPool $kernelPool;
+
+    /**
+     * 请求对象池
+     * @var RequestPool
+     */
+    private RequestPool $requestPool;
 
     /**
      * @var \Swoole\Http\Server | \Swoole\WebSocket\Server 服务对象
@@ -256,13 +263,33 @@ class Server
     private function warpToSymfonyRequest(Request $request): SymfonyRequest
     {
         $parameters = array_merge($request->post ?? [], $request->get ?? []);
-        return SymfonyRequest::create(
-            $request->server['request_uri'], $request->server['request_method'],
-            $parameters, $request->cookie ?? [],
+
+        /**
+         * @var $symfonyRequest SymfonyRequest
+         */
+        $symfonyRequest = $this->requestPool->get();
+
+        $symfonyRequest->initialize(
+            $request->get,
+            $parameters,
+            [],
+            $request->cookie ?? [],
             $request->files ?? [],
             array_change_key_case($request->server, CASE_UPPER),
             $request->rawcontent()
         );
+
+        $symfonyRequest->setMethod($request->server['request_method']);
+
+        return $symfonyRequest;
+
+//        return SymfonyRequest::create(
+//            $request->server['request_uri'], $request->server['request_method'],
+//            $parameters, $request->cookie ?? [],
+//            $request->files ?? [],
+//            array_change_key_case($request->server, CASE_UPPER),
+//            $request->rawcontent()
+//        );
     }
 
     /**
@@ -336,17 +363,21 @@ class Server
      */
     public function onRequest(): Closure
     {
-        $this->kernelPool = new KernelPool(10, true);
+        $this->kernelPool = new KernelPool(20, true);
+        $this->requestPool = new RequestPool(20, true);
+
         return function (Request $request, Response $response) {
+            $symfonyRequest = $kernel = null;
             try {
                 $request->server['http_host'] = $this->getHttpHost();
-                $k = $this->kernelPool->get();
+                $kernel = $this->kernelPool->get();
                 $this->checkSessionExists($request, $response);
                 $symfonyRequest = $this->warpToSymfonyRequest($request);
-                $this->requestBindToKernel($symfonyRequest, $k);
-                $this->finishResponse($k, $symfonyRequest, $response);
+                $this->requestBindToKernel($symfonyRequest, $kernel);
+                $this->finishResponse($kernel, $symfonyRequest, $response);
             } finally {
-                if (isset($k) && $k) $this->kernelPool->put($k);
+                $this->kernelPool->put($kernel);
+                $this->requestPool->put($symfonyRequest);
             }
         };
     }
