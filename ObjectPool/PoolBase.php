@@ -2,13 +2,12 @@
 
 namespace xiusin\SwooleBundle\ObjectPool;
 
-use App\Kernel;
 use Swoole\Lock;
 use Throwable;
 
 abstract class PoolBase
 {
-    private \SplQueue $queue;
+    private \SplDoublyLinkedList $queue;
 
     /**
      * 互斥锁
@@ -28,7 +27,7 @@ abstract class PoolBase
      */
     public function __construct(int $size, $init = true)
     {
-        $this->queue = new \SplQueue();
+        $this->queue = new \SplDoublyLinkedList();
 
         $this->locker = new Lock(SWOOLE_MUTEX);
         $this->size = $size;

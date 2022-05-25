@@ -282,14 +282,6 @@ class Server
         $symfonyRequest->setMethod($request->server['request_method']);
 
         return $symfonyRequest;
-
-//        return SymfonyRequest::create(
-//            $request->server['request_uri'], $request->server['request_method'],
-//            $parameters, $request->cookie ?? [],
-//            $request->files ?? [],
-//            array_change_key_case($request->server, CASE_UPPER),
-//            $request->rawcontent()
-//        );
     }
 
     /**
@@ -316,6 +308,8 @@ class Server
         $response->end($symfonyResponse->getContent());
         // 关闭请求与响应的生命周期
         $kernel->terminate($symfonyRequest, $symfonyResponse);
+
+        $symfonyRequest->initialize();
     }
 
     // 将request 附着到kernel上,在控制器内使用, 现在不知道怎么使用优雅的方式解决
