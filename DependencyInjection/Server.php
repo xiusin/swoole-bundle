@@ -8,6 +8,7 @@ use Exception;
 use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use Swoole\Runtime;
 use swoole_process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -121,6 +122,9 @@ class Server
      */
     public function __construct(ContainerInterface $container, SymfonyStyle $io, bool $daemonize = false)
     {
+
+        Runtime::enableCoroutine(SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL);
+
         $this->container = $container;
 
         $this->io = $io;
@@ -298,7 +302,7 @@ class Server
     // 如果不存在session_name的 cookie 则设置
     private function checkSessionExists(Request $request, Response $response)
     {
-        if (!($request->cookie[session_name()] ?? '')) {
+        if ($this->container->has('session') && !($request->cookie[session_name()] ?? '')) {
             $request->cookie[session_name()] = strtoupper(session_create_id('sess-'));
             $response->cookie(session_name(), $request->cookie[session_name()]);
         }
@@ -337,9 +341,7 @@ class Server
             try {
                 $request->server['http_host'] = $this->getHttpHost();
                 $k = $this->kernelPool->get();
-
                 $this->checkSessionExists($request, $response);
-
                 $symfonyRequest = $this->warpToSymfonyRequest($request);
                 $this->requestBindToKernel($symfonyRequest, $k);
                 $this->finishResponse($k, $symfonyRequest, $response);

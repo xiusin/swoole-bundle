@@ -57,6 +57,7 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('enable_static_handler')->defaultFalse()->end()
             ->scalarNode('document_root')->defaultValue('%kernel.project_dir%/public/')->end()
             ->booleanNode('enable_coroutine')->defaultTrue()->end()
+            ->booleanNode('max_coroutine')->defaultValue(3000)->end()
             ->booleanNode('reload_async')->defaultTrue()->end()
             ->booleanNode('enable_reuse_port')->defaultFalse()->end()
             ->end()
