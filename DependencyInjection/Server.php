@@ -270,7 +270,7 @@ class Server
         $symfonyRequest = $this->requestPool->get();
 
         $symfonyRequest->initialize(
-            $request->get,
+            $request->get ?? [],
             $parameters,
             [],
             $request->cookie ?? [],

@@ -8,11 +8,7 @@ use Throwable;
 
 abstract class PoolBase
 {
-    /**
-     * 池数组
-     * @var array
-     */
-    private array $pools = [];
+    private \SplQueue $queue;
 
     /**
      * 互斥锁
@@ -32,12 +28,12 @@ abstract class PoolBase
      */
     public function __construct(int $size, $init = true)
     {
+        $this->queue = new \SplQueue();
+
         $this->locker = new Lock(SWOOLE_MUTEX);
         $this->size = $size;
 
-        if ($init) {
-            $this->init();
-        }
+        $init && $this->init();
     }
 
     /**
@@ -46,7 +42,7 @@ abstract class PoolBase
     private function init()
     {
         for ($i = 0; $i < $this->size; $i++) {
-            $object = $this->get();
+            $object = $this->new();
             $this->put($object);
         }
     }
@@ -55,8 +51,8 @@ abstract class PoolBase
     {
         $this->locker->lock();
         try {
-            if (count($this->pools)) {
-                $object = array_pop($this->pools);
+            if ($this->queue->count()) {
+                $object = $this->queue->pop();
             } else {
                 $object = $this->new();
             }
@@ -71,8 +67,8 @@ abstract class PoolBase
         if ($object) {
             try {
                 $this->locker->lock();
-                if (count($this->pools) < $this->size) {
-                    $this->pools[] = $object;
+                if ($this->queue->count() < $this->size) {
+                    $this->queue->push($object);
                 } else {
                     unset($object);
                 }
