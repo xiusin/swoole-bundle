@@ -8,6 +8,7 @@ use Exception;
 use RuntimeException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use swoole_process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
@@ -183,7 +184,7 @@ class Server
         $processes = $this->config['processes'];
         foreach ($processes as $processName) {
             if (in_array(ProcessInterface::class, class_implements($processName, true))) {
-                $this->handler->addProcess(new \swoole_process(function ($process) use (&$processName) {
+                $this->handler->addProcess(new swoole_process(function ($process) use (&$processName) {
 
                     /* @var $processHandler ProcessInterface */
                     $processHandler = new $processName();
@@ -336,6 +337,9 @@ class Server
             try {
                 $request->server['http_host'] = $this->getHttpHost();
                 $k = $this->kernelPool->get();
+
+                $this->checkSessionExists($request, $response);
+
                 $symfonyRequest = $this->warpToSymfonyRequest($request);
                 $this->requestBindToKernel($symfonyRequest, $k);
                 $this->finishResponse($k, $symfonyRequest, $response);
