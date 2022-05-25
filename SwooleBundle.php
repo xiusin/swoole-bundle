@@ -27,15 +27,5 @@ class SwooleBundle extends Bundle
     private function registerServices()
     {
         $this->container->set($this->swooleName, WebServer::getInstance()->httpServer());
-
-        $this->setSessionId();
-    }
-
-    private function setSessionId()
-    {
-        if ($this->container->has('session')) {
-            $req = $this->container->get('kernel')->request;
-            $this->container->get('session')->setId($req->cookies->get(session_name()));
-        }
     }
 }
