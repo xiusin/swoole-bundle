@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
-WORK_DIR="./"
-php bin/console swoole:start -v -d
+WORK_DIR=$1
+if [ ! -n "${WORK_DIR}" ] ;then
+    WORK_DIR="."
+fi
+
+php bin/console swoole:start -v -d true
+
+echo "starting watch..."
 LOCKING=0
-fswatch -e ".*" -i "\.php$" ${WORK_DIR} | while read file
+fswatch -e ".*" -i "\\.php$" -r ${WORK_DIR} | while read file
 do
+    if [[ ! ${file} =~ .php$ ]] ;then
+        continue
+    fi
     if [ ${LOCKING} -eq 1 ] ;then
         echo "Reloading, skipped."
         continue
