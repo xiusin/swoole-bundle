@@ -101,14 +101,6 @@ framework:
     // ...
 ```
 
-
-
-
-# TODO #
- - [ ] 开发session组件适配组件
- - [ ] cookie session开启依赖配置项
- - [ ] 大批量测试数据污染 
- 
 # 压测数据 #
 ```bash
 # 优化压测
