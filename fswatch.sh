@@ -6,10 +6,17 @@ fi
 
 php bin/console swoole:start -v -d true
 
-echo "starting watch..."
+WORK_DIR="${WORK_DIR}/src/"
+
+echo "starting watch ${WORK_DIR}..."
 LOCKING=0
-fswatch -e ".*" -i "\\.php$" -r ${WORK_DIR} | while read file
+event=""
+fswatch -x -l 2 -e ".*" -i "\\.php$" -r ${WORK_DIR} | while read file event
 do
+    if [ "${event}" = "PlatformSpecific" ]; then
+        continue
+    fi
+
     if [[ ! ${file} =~ .php$ ]] ;then
         continue
     fi
@@ -17,7 +24,7 @@ do
         echo "Reloading, skipped."
         continue
     fi
-    echo "File ${file} has been modified."
+    echo "File ${file} has been modified. E:[${event}]"
     LOCKING=1
     php bin/console swoole:reload -v
     LOCKING=0
